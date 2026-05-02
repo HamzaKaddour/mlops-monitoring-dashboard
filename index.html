@@ -3,87 +3,106 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MLOps Monitoring Dashboard</title>
-  <meta name="description" content="MLOps dashboard for model performance, data drift, prediction monitoring, alerts, and model-card reporting." />
+  <title>MLOps Monitoring Console</title>
+  <meta name="description" content="MLOps monitoring console for model performance, data drift, prediction monitoring, alerts, and model-card reporting." />
   <link rel="stylesheet" href="css/styles.css" />
   <script defer src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <script defer src="js/app.js"></script>
 </head>
 <body>
-  <header class="hero">
-    <div>
-      <p class="eyebrow">MLOps · Model Monitoring · Drift Detection</p>
-      <h1>MLOps Monitoring Dashboard</h1>
-      <p class="subtitle">A production-style monitoring workspace for tracking model quality, data drift, prediction behavior, alert status, and model-card metadata.</p>
-    </div>
-    <aside class="status-card">
-      <span class="status-dot"></span>
-      <strong>Monitoring artifacts loaded</strong>
-      <small>Performance, drift, predictions, and model card</small>
-    </aside>
-  </header>
-
-  <main>
-    <section class="summary-grid" id="summaryGrid"></section>
-
-    <section class="panel intro-panel">
-      <div>
-        <p class="eyebrow">System overview</p>
-        <h2>Post-deployment model reliability</h2>
-        <p>Model performance can degrade after deployment when input data shifts, user behavior changes, or prediction distributions drift away from the training baseline. This dashboard consolidates monitoring artifacts used to decide whether a model is healthy, degraded, or ready for retraining.</p>
-      </div>
-      <div class="pipeline-flow">
-        <div>Training Data</div><div>Model</div><div>Predictions</div><div>Monitoring</div><div>Retraining Signal</div>
-      </div>
-    </section>
-
-    <section class="panel">
-      <div class="panel-heading">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand-block">
+        <div class="brand-icon">M</div>
         <div>
-          <p class="eyebrow">Methodology</p>
-          <h2>Monitoring workflow</h2>
+          <strong>MLOps Console</strong>
+          <span>Model Reliability</span>
         </div>
-        <span class="chip">Metrics · Drift · Alerts</span>
       </div>
-      <div class="notes-grid">
-        <article><h3>1. Performance windows</h3><p>Training, validation, and production windows are tracked separately to expose degradation after deployment.</p></article>
-        <article><h3>2. Feature drift</h3><p>Feature-level drift scores identify which inputs shifted most compared with the reference baseline.</p></article>
-        <article><h3>3. Prediction behavior</h3><p>Prediction distributions are monitored to detect changes in class balance, confidence, and risk concentration.</p></article>
-        <article><h3>4. Alerting</h3><p>Rule-based alerts summarize whether drift, performance drop, or confidence changes require investigation.</p></article>
-      </div>
-    </section>
 
-    <section class="grid-2">
-      <div class="panel">
-        <div class="panel-heading"><div><p class="eyebrow">Model quality</p><h2>Performance across windows</h2></div><span class="chip">AUC · F1 · Accuracy</span></div>
-        <div id="performanceChart" class="chart"></div>
-      </div>
-      <div class="panel">
-        <div class="panel-heading"><div><p class="eyebrow">Data quality</p><h2>Feature drift ranking</h2></div><span class="chip">PSI-style score</span></div>
-        <div id="driftChart" class="chart"></div>
-      </div>
-    </section>
+      <nav class="side-nav" aria-label="Dashboard navigation">
+        <a href="#overview" class="active">Overview</a>
+        <a href="#quality">Model Quality</a>
+        <a href="#drift">Data Drift</a>
+        <a href="#predictions">Predictions</a>
+        <a href="#alerts">Alerts</a>
+        <a href="#model-card-section">Model Card</a>
+      </nav>
 
-    <section class="grid-2">
-      <div class="panel">
-        <div class="panel-heading"><div><p class="eyebrow">Prediction monitoring</p><h2>Prediction volume and risk rate</h2></div><span class="chip">Daily logs</span></div>
-        <div id="predictionChart" class="chart"></div>
+      <div class="sidebar-card">
+        <span class="tiny-label">Current model</span>
+        <strong id="sidebarModelName">Loading...</strong>
+        <small id="sidebarModelVersion">Version pending</small>
       </div>
-      <div class="panel">
-        <div class="panel-heading"><div><p class="eyebrow">Alert center</p><h2>Production risk indicators</h2></div><span class="chip">Health status</span></div>
-        <div id="alertList" class="alert-list"></div>
-      </div>
-    </section>
+    </aside>
 
-    <section class="panel">
-      <div class="panel-heading"><div><p class="eyebrow">Model card</p><h2>Deployment summary</h2></div><span class="chip">Governance</span></div>
-      <div id="modelCard" class="model-card-grid"></div>
-    </section>
-  </main>
+    <div class="workspace">
+      <header class="topbar">
+        <div>
+          <p class="crumb">Production / Churn Risk / Monitoring</p>
+          <h1>MLOps Monitoring Console</h1>
+        </div>
+        <div class="topbar-actions">
+          <span class="env-pill">Batch scoring</span>
+          <span class="sync-pill"><span></span> Artifacts loaded</span>
+        </div>
+      </header>
 
-  <footer>
-    <span>MLOps Monitoring Dashboard</span>
-    <span>Performance · Drift · Model Governance</span>
-  </footer>
+      <main>
+        <section id="overview" class="overview-panel">
+          <div class="overview-copy">
+            <span class="section-kicker">Post-deployment reliability</span>
+            <h2>Monitor model health before quality decay becomes a production issue.</h2>
+            <p>This console tracks model quality, feature drift, prediction behavior, alert status, and governance metadata for a customer churn risk classifier.</p>
+          </div>
+          <div class="ops-flow">
+            <div><span>01</span> Train</div>
+            <div><span>02</span> Validate</div>
+            <div><span>03</span> Score</div>
+            <div><span>04</span> Monitor</div>
+            <div><span>05</span> Review</div>
+          </div>
+        </section>
+
+        <section class="kpi-strip" id="summaryGrid"></section>
+
+        <section class="method-board">
+          <article><span>Performance windows</span><p>Training, validation, 7-day production, and 30-day production windows are compared side by side.</p></article>
+          <article><span>Feature drift</span><p>Feature-level drift scores identify which production inputs shifted away from the validation baseline.</p></article>
+          <article><span>Prediction behavior</span><p>Daily scoring volume, positive rate, and confidence are monitored for distribution changes.</p></article>
+          <article><span>Alerting</span><p>Risk indicators summarize performance degradation, drift, volume, and confidence stability.</p></article>
+        </section>
+
+        <section class="content-grid" id="quality">
+          <article class="console-card wide-card">
+            <div class="card-title-row"><div><span class="section-kicker">Model quality</span><h2>Performance across windows</h2></div><span class="metric-tag">AUC · F1 · Accuracy</span></div>
+            <div id="performanceChart" class="chart"></div>
+          </article>
+
+          <article class="console-card" id="drift">
+            <div class="card-title-row"><div><span class="section-kicker">Data drift</span><h2>Feature drift ranking</h2></div><span class="metric-tag">PSI-style score</span></div>
+            <div id="driftChart" class="chart compact-chart"></div>
+          </article>
+        </section>
+
+        <section class="content-grid" id="predictions">
+          <article class="console-card wide-card">
+            <div class="card-title-row"><div><span class="section-kicker">Prediction monitoring</span><h2>Volume, risk rate, and confidence</h2></div><span class="metric-tag">Daily logs</span></div>
+            <div id="predictionChart" class="chart"></div>
+          </article>
+
+          <article class="console-card" id="alerts">
+            <div class="card-title-row"><div><span class="section-kicker">Alert center</span><h2>Production risk indicators</h2></div><span class="metric-tag">Health</span></div>
+            <div id="alertList" class="alert-list"></div>
+          </article>
+        </section>
+
+        <section class="console-card" id="model-card-section">
+          <div class="card-title-row"><div><span class="section-kicker">Model governance</span><h2>Structured model card</h2></div><span class="metric-tag">Deployment summary</span></div>
+          <div id="modelCard" class="model-card-grid"></div>
+        </section>
+      </main>
+    </div>
+  </div>
 </body>
 </html>
