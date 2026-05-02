@@ -1,0 +1,21 @@
+{
+  "reference_window": "validation",
+  "current_window": "production_7d",
+  "overall_drift_status": "watch",
+  "drift_score": 0.186,
+  "thresholds": {"low": 0.1, "medium": 0.2, "high": 0.35},
+  "features": [
+    {"feature": "monthly_charges", "type": "numeric", "drift_score": 0.271, "status": "watch", "direction": "higher than baseline"},
+    {"feature": "contract_type", "type": "categorical", "drift_score": 0.238, "status": "watch", "direction": "more month-to-month contracts"},
+    {"feature": "support_tickets_30d", "type": "numeric", "drift_score": 0.221, "status": "watch", "direction": "higher than baseline"},
+    {"feature": "tenure_months", "type": "numeric", "drift_score": 0.176, "status": "stable", "direction": "slightly lower than baseline"},
+    {"feature": "payment_method", "type": "categorical", "drift_score": 0.141, "status": "stable", "direction": "minor category shift"},
+    {"feature": "internet_service", "type": "categorical", "drift_score": 0.094, "status": "stable", "direction": "within baseline range"}
+  ],
+  "alerts": [
+    {"name": "AUC degradation", "severity": "watch", "message": "Production AUC is 0.034 below validation AUC. Monitor for sustained decline."},
+    {"name": "Feature drift", "severity": "watch", "message": "Three features exceed the medium drift threshold."},
+    {"name": "Prediction volume", "severity": "ok", "message": "Prediction volume is within the expected range."},
+    {"name": "Confidence distribution", "severity": "ok", "message": "Average confidence remains stable relative to the previous production window."}
+  ]
+}
