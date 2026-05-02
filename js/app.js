@@ -3,11 +3,11 @@ const state = { metrics: null, drift: null, predictions: null, modelCard: null }
 const baseLayout = {
   paper_bgcolor: "rgba(0,0,0,0)",
   plot_bgcolor: "rgba(0,0,0,0)",
-  font: { color: "#e5e7eb", family: "Inter, system-ui, sans-serif" },
-  margin: { t: 20, r: 20, b: 50, l: 55 },
-  xaxis: { gridcolor: "rgba(148,163,184,0.16)", zerolinecolor: "rgba(148,163,184,0.2)" },
-  yaxis: { gridcolor: "rgba(148,163,184,0.16)", zerolinecolor: "rgba(148,163,184,0.2)" },
-  legend: { orientation: "h", y: -0.22 }
+  font: { color: "#111827", family: "Inter, system-ui, sans-serif" },
+  margin: { t: 18, r: 18, b: 46, l: 52 },
+  xaxis: { gridcolor: "rgba(148,163,184,0.22)", zerolinecolor: "rgba(148,163,184,0.24)", tickfont: { color: "#64748b" } },
+  yaxis: { gridcolor: "rgba(148,163,184,0.22)", zerolinecolor: "rgba(148,163,184,0.24)", tickfont: { color: "#64748b" } },
+  legend: { orientation: "h", y: -0.22, font: { color: "#334155" } }
 };
 
 async function loadData() {
@@ -22,6 +22,7 @@ async function loadData() {
   state.predictions = await predictionsRes.json();
   state.modelCard = await cardRes.json();
 
+  renderSidebar();
   renderSummary();
   renderCharts();
   renderAlerts();
@@ -31,28 +32,33 @@ async function loadData() {
 function pct(value) { return `${Math.round(value * 100)}%`; }
 function num(value) { return Number(value).toLocaleString(); }
 
+function renderSidebar() {
+  document.getElementById("sidebarModelName").textContent = state.metrics.model_name;
+  document.getElementById("sidebarModelVersion").textContent = `${state.metrics.model_version} · ${state.metrics.problem_type.replaceAll("_", " ")}`;
+}
+
 function renderSummary() {
   const s = state.metrics.summary;
   const cards = [
-    ["Health status", s.health_status.toUpperCase(), "Current production monitoring state"],
+    ["Health status", s.health_status.toUpperCase(), "Current production state"],
     ["Production AUC", s.current_auc.toFixed(3), `${s.auc_delta_from_validation.toFixed(3)} vs validation`],
     ["Production F1", s.current_f1.toFixed(3), "Current production window"],
     ["Predictions / 7d", num(s.predictions_last_7_days), "Observed scoring volume"]
   ];
   document.getElementById("summaryGrid").innerHTML = cards.map(([label, value, note]) => `
-    <article class="metric-card">
-      <div class="metric-label">${label}</div>
-      <div class="metric-value">${value}</div>
-      <div class="metric-note">${note}</div>
+    <article class="kpi-card">
+      <div class="kpi-label">${label}</div>
+      <div class="kpi-value">${value}</div>
+      <div class="kpi-note">${note}</div>
     </article>`).join("");
 }
 
 function renderCharts() {
   const windows = state.metrics.windows.map(w => w.window.replaceAll("_", " "));
   Plotly.newPlot("performanceChart", [
-    { x: windows, y: state.metrics.windows.map(w => w.auc), name: "AUC", type: "scatter", mode: "lines+markers", line: { width: 4 } },
-    { x: windows, y: state.metrics.windows.map(w => w.f1), name: "F1", type: "scatter", mode: "lines+markers", line: { width: 4 } },
-    { x: windows, y: state.metrics.windows.map(w => w.accuracy), name: "Accuracy", type: "scatter", mode: "lines+markers", line: { width: 4 } }
+    { x: windows, y: state.metrics.windows.map(w => w.auc), name: "AUC", type: "scatter", mode: "lines+markers", line: { width: 3, shape: "spline" }, marker: { size: 8 } },
+    { x: windows, y: state.metrics.windows.map(w => w.f1), name: "F1", type: "scatter", mode: "lines+markers", line: { width: 3, shape: "spline" }, marker: { size: 8 } },
+    { x: windows, y: state.metrics.windows.map(w => w.accuracy), name: "Accuracy", type: "scatter", mode: "lines+markers", line: { width: 3, shape: "spline" }, marker: { size: 8 } }
   ], { ...baseLayout, yaxis: { ...baseLayout.yaxis, range: [0.65, 0.95] } }, { responsive: true, displayModeBar: false });
 
   const sortedFeatures = [...state.drift.features].sort((a, b) => a.drift_score - b.drift_score);
@@ -63,17 +69,17 @@ function renderCharts() {
     orientation: "h",
     text: sortedFeatures.map(f => f.status),
     hovertext: sortedFeatures.map(f => f.direction)
-  }], { ...baseLayout, xaxis: { ...baseLayout.xaxis, title: "Drift score" }, yaxis: { ...baseLayout.yaxis, automargin: true } }, { responsive: true, displayModeBar: false });
+  }], { ...baseLayout, xaxis: { ...baseLayout.xaxis, title: "Drift score" }, yaxis: { ...baseLayout.yaxis, automargin: true }, margin: { t: 12, r: 16, b: 42, l: 120 } }, { responsive: true, displayModeBar: false });
 
   const daily = state.predictions.daily;
   Plotly.newPlot("predictionChart", [
     { x: daily.map(d => d.date), y: daily.map(d => d.predictions), name: "Prediction volume", type: "bar", yaxis: "y" },
-    { x: daily.map(d => d.date), y: daily.map(d => d.positive_rate), name: "Positive rate", type: "scatter", mode: "lines+markers", yaxis: "y2", line: { width: 4 } },
-    { x: daily.map(d => d.date), y: daily.map(d => d.avg_confidence), name: "Avg confidence", type: "scatter", mode: "lines+markers", yaxis: "y3", line: { width: 4, dash: "dot" } }
+    { x: daily.map(d => d.date), y: daily.map(d => d.positive_rate), name: "Positive rate", type: "scatter", mode: "lines+markers", yaxis: "y2", line: { width: 3 } },
+    { x: daily.map(d => d.date), y: daily.map(d => d.avg_confidence), name: "Avg confidence", type: "scatter", mode: "lines+markers", yaxis: "y3", line: { width: 3, dash: "dot" } }
   ], {
     ...baseLayout,
-    yaxis: { title: "Volume", gridcolor: "rgba(148,163,184,0.16)" },
-    yaxis2: { title: "Positive rate", overlaying: "y", side: "right", range: [0, 0.4], gridcolor: "rgba(0,0,0,0)" },
+    yaxis: { title: "Volume", gridcolor: "rgba(148,163,184,0.22)" },
+    yaxis2: { title: "Positive rate", overlaying: "y", side: "right", range: [0, 0.4], gridcolor: "rgba(0,0,0,0)", tickfont: { color: "#64748b" } },
     yaxis3: { visible: false, overlaying: "y", range: [0.7, 0.9] }
   }, { responsive: true, displayModeBar: false });
 }
