@@ -1,0 +1,27 @@
+{
+  "model_name": "Customer Churn Risk Classifier",
+  "version": "v1.3.0",
+  "owner": "ML Platform Team",
+  "last_updated": "2026-05-02",
+  "intended_use": "Prioritize customer retention outreach by estimating the probability that an active customer may churn within 30 days.",
+  "model_type": "Gradient Boosted Trees",
+  "training_data": "Historical customer account, billing, support, and contract records with labels derived from 30-day churn outcomes.",
+  "input_features": ["tenure_months", "monthly_charges", "contract_type", "support_tickets_30d", "payment_method", "internet_service"],
+  "limitations": [
+    "Predictions should support retention prioritization, not automated denial of service.",
+    "Performance may degrade when pricing, support operations, or customer acquisition channels change.",
+    "Segments with low historical volume require additional review before operational decisions."
+  ],
+  "monitoring_requirements": [
+    "Track AUC, F1, precision, recall, and log loss by production window.",
+    "Monitor feature drift for billing, contract, and support-ticket features.",
+    "Review prediction distribution shifts weekly.",
+    "Trigger retraining review if AUC drops by more than 0.05 or if overall drift score exceeds 0.25."
+  ],
+  "deployment": {
+    "environment": "batch scoring",
+    "cadence": "daily",
+    "latency_target_ms": 75,
+    "current_p95_latency_ms": 48
+  }
+}
