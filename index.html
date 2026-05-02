@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MLOps Monitoring Dashboard</title>
+  <meta name="description" content="MLOps dashboard for model performance, data drift, prediction monitoring, alerts, and model-card reporting." />
+  <link rel="stylesheet" href="css/styles.css" />
+  <script defer src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <script defer src="js/app.js"></script>
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <p class="eyebrow">MLOps · Model Monitoring · Drift Detection</p>
+      <h1>MLOps Monitoring Dashboard</h1>
+      <p class="subtitle">A production-style monitoring workspace for tracking model quality, data drift, prediction behavior, alert status, and model-card metadata.</p>
+    </div>
+    <aside class="status-card">
+      <span class="status-dot"></span>
+      <strong>Monitoring artifacts loaded</strong>
+      <small>Performance, drift, predictions, and model card</small>
+    </aside>
+  </header>
+
+  <main>
+    <section class="summary-grid" id="summaryGrid"></section>
+
+    <section class="panel intro-panel">
+      <div>
+        <p class="eyebrow">System overview</p>
+        <h2>Post-deployment model reliability</h2>
+        <p>Model performance can degrade after deployment when input data shifts, user behavior changes, or prediction distributions drift away from the training baseline. This dashboard consolidates monitoring artifacts used to decide whether a model is healthy, degraded, or ready for retraining.</p>
+      </div>
+      <div class="pipeline-flow">
+        <div>Training Data</div><div>Model</div><div>Predictions</div><div>Monitoring</div><div>Retraining Signal</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Methodology</p>
+          <h2>Monitoring workflow</h2>
+        </div>
+        <span class="chip">Metrics · Drift · Alerts</span>
+      </div>
+      <div class="notes-grid">
+        <article><h3>1. Performance windows</h3><p>Training, validation, and production windows are tracked separately to expose degradation after deployment.</p></article>
+        <article><h3>2. Feature drift</h3><p>Feature-level drift scores identify which inputs shifted most compared with the reference baseline.</p></article>
+        <article><h3>3. Prediction behavior</h3><p>Prediction distributions are monitored to detect changes in class balance, confidence, and risk concentration.</p></article>
+        <article><h3>4. Alerting</h3><p>Rule-based alerts summarize whether drift, performance drop, or confidence changes require investigation.</p></article>
+      </div>
+    </section>
+
+    <section class="grid-2">
+      <div class="panel">
+        <div class="panel-heading"><div><p class="eyebrow">Model quality</p><h2>Performance across windows</h2></div><span class="chip">AUC · F1 · Accuracy</span></div>
+        <div id="performanceChart" class="chart"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-heading"><div><p class="eyebrow">Data quality</p><h2>Feature drift ranking</h2></div><span class="chip">PSI-style score</span></div>
+        <div id="driftChart" class="chart"></div>
+      </div>
+    </section>
+
+    <section class="grid-2">
+      <div class="panel">
+        <div class="panel-heading"><div><p class="eyebrow">Prediction monitoring</p><h2>Prediction volume and risk rate</h2></div><span class="chip">Daily logs</span></div>
+        <div id="predictionChart" class="chart"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-heading"><div><p class="eyebrow">Alert center</p><h2>Production risk indicators</h2></div><span class="chip">Health status</span></div>
+        <div id="alertList" class="alert-list"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-heading"><div><p class="eyebrow">Model card</p><h2>Deployment summary</h2></div><span class="chip">Governance</span></div>
+      <div id="modelCard" class="model-card-grid"></div>
+    </section>
+  </main>
+
+  <footer>
+    <span>MLOps Monitoring Dashboard</span>
+    <span>Performance · Drift · Model Governance</span>
+  </footer>
+</body>
+</html>
