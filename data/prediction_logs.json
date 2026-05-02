@@ -1,0 +1,25 @@
+{
+  "window": "last_14_days",
+  "daily": [
+    {"date": "2026-04-19", "predictions": 3820, "positive_rate": 0.184, "avg_confidence": 0.812},
+    {"date": "2026-04-20", "predictions": 3915, "positive_rate": 0.191, "avg_confidence": 0.809},
+    {"date": "2026-04-21", "predictions": 4052, "positive_rate": 0.203, "avg_confidence": 0.804},
+    {"date": "2026-04-22", "predictions": 4110, "positive_rate": 0.211, "avg_confidence": 0.801},
+    {"date": "2026-04-23", "predictions": 3975, "positive_rate": 0.207, "avg_confidence": 0.798},
+    {"date": "2026-04-24", "predictions": 4230, "positive_rate": 0.219, "avg_confidence": 0.796},
+    {"date": "2026-04-25", "predictions": 4318, "positive_rate": 0.224, "avg_confidence": 0.794},
+    {"date": "2026-04-26", "predictions": 4094, "positive_rate": 0.217, "avg_confidence": 0.797},
+    {"date": "2026-04-27", "predictions": 3988, "positive_rate": 0.209, "avg_confidence": 0.803},
+    {"date": "2026-04-28", "predictions": 4175, "positive_rate": 0.214, "avg_confidence": 0.799},
+    {"date": "2026-04-29", "predictions": 4211, "positive_rate": 0.228, "avg_confidence": 0.792},
+    {"date": "2026-04-30", "predictions": 4380, "positive_rate": 0.236, "avg_confidence": 0.789},
+    {"date": "2026-05-01", "predictions": 4294, "positive_rate": 0.231, "avg_confidence": 0.791},
+    {"date": "2026-05-02", "predictions": 4102, "positive_rate": 0.222, "avg_confidence": 0.796}
+  ],
+  "segments": [
+    {"segment": "new_customers", "volume": 8120, "positive_rate": 0.281, "avg_confidence": 0.775},
+    {"segment": "month_to_month", "volume": 17480, "positive_rate": 0.318, "avg_confidence": 0.764},
+    {"segment": "annual_contract", "volume": 15230, "positive_rate": 0.118, "avg_confidence": 0.842},
+    {"segment": "high_support_tickets", "volume": 4910, "positive_rate": 0.386, "avg_confidence": 0.751}
+  ]
+}
