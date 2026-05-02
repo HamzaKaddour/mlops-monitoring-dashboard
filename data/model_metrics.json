@@ -1,0 +1,28 @@
+{
+  "generated_at": "2026-05-02T00:00:00Z",
+  "model_name": "Customer Churn Risk Classifier",
+  "model_version": "v1.3.0",
+  "problem_type": "binary_classification",
+  "target": "churn_within_30_days",
+  "summary": {
+    "health_status": "watch",
+    "current_auc": 0.873,
+    "current_f1": 0.741,
+    "current_accuracy": 0.862,
+    "auc_delta_from_validation": -0.034,
+    "predictions_last_7_days": 28420,
+    "retraining_recommended": false
+  },
+  "windows": [
+    {"window": "training", "auc": 0.914, "f1": 0.786, "accuracy": 0.889, "precision": 0.802, "recall": 0.771, "log_loss": 0.312},
+    {"window": "validation", "auc": 0.907, "f1": 0.778, "accuracy": 0.881, "precision": 0.792, "recall": 0.764, "log_loss": 0.327},
+    {"window": "production_7d", "auc": 0.873, "f1": 0.741, "accuracy": 0.862, "precision": 0.758, "recall": 0.725, "log_loss": 0.381},
+    {"window": "production_30d", "auc": 0.881, "f1": 0.752, "accuracy": 0.867, "precision": 0.766, "recall": 0.739, "log_loss": 0.368}
+  ],
+  "experiments": [
+    {"run_id": "exp_lr_001", "model": "Logistic Regression", "auc": 0.842, "f1": 0.693, "latency_ms": 12},
+    {"run_id": "exp_rf_014", "model": "Random Forest", "auc": 0.887, "f1": 0.756, "latency_ms": 42},
+    {"run_id": "exp_xgb_021", "model": "Gradient Boosted Trees", "auc": 0.907, "f1": 0.778, "latency_ms": 31},
+    {"run_id": "exp_nn_006", "model": "Small Neural Network", "auc": 0.899, "f1": 0.769, "latency_ms": 55}
+  ]
+}
