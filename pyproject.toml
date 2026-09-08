@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mlops-monitoring-dashboard"
+version = "0.1.0"
+description = "Production-style MLOps monitoring dashboard with drift detection, API serving, tests, and CI."
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.setuptools]
+packages = ["mlops_monitoring", "api"]
