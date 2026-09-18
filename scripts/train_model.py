@@ -1,13 +1,12 @@
 """Train candidate churn models, track experiments with MLflow, and save the best model.
 
-This script is intended to run on the workstation. It uses a deterministic
-synthetic dataset so the full workflow is reproducible and free of proprietary
-data.
+This script runs entirely locally and uses a deterministic synthetic dataset so
+it is reproducible without proprietary data.
 
 Outputs:
 - artifacts/model.joblib
 - artifacts/training_summary.json
-- local MLflow runs under ./mlruns
+- mlflow.db
 
 Run:
     python scripts/train_model.py
@@ -21,7 +20,6 @@ from pathlib import Path
 
 import joblib
 import mlflow
-import mlflow.sklearn
 from sklearn.model_selection import train_test_split
 
 from mlops_monitoring.training import (
@@ -35,13 +33,11 @@ from mlops_monitoring.training import (
 
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACT_DIR = ROOT / "artifacts"
-MLRUNS_DIR = ROOT / "mlruns"
 MLFLOW_DB = ROOT / "mlflow.db"
 
 
 def main() -> None:
     ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
-    MLRUNS_DIR.mkdir(parents=True, exist_ok=True)
 
     frame = make_synthetic_churn_data()
     X = frame[FEATURES]
@@ -66,15 +62,14 @@ def main() -> None:
     mlflow.set_tracking_uri(tracking_uri)
     mlflow.set_experiment("churn-model-selection")
 
-    results = []
-    best_name = None
+    candidate_results: list[dict] = []
+    best_name: str | None = None
     best_model = None
     best_auc = float("-inf")
 
     for name, estimator in candidate_models().items():
         model = build_pipeline(estimator)
         model.fit(X_train, y_train)
-
         val_metrics = classification_metrics(model, X_val, y_val)
 
         with mlflow.start_run(run_name=name) as run:
@@ -88,26 +83,28 @@ def main() -> None:
                 }
             )
             mlflow.log_metrics({f"val_{k}": v for k, v in val_metrics.items()})
-            mlflow.sklearn.log_model(\n                model,\n                name="model",\n                serialization_format=mlflow.sklearn.SERIALIZATION_FORMAT_CLOUDPICKLE,\n            )
 
-            result = {
-                "run_id": run.info.run_id,
-                "candidate": name,
-                "validation_metrics": val_metrics,
-            }
-            results.append(result)
+            candidate_results.append(
+                {
+                    "run_id": run.info.run_id,
+                    "candidate": name,
+                    "validation_metrics": val_metrics,
+                }
+            )
 
         if val_metrics["roc_auc"] > best_auc:
             best_auc = val_metrics["roc_auc"]
             best_name = name
             best_model = model
 
-    assert best_model is not None and best_name is not None
+    if best_model is None or best_name is None:
+        raise RuntimeError("No candidate model was trained successfully.")
 
     test_metrics = classification_metrics(best_model, X_test, y_test)
     model_version = "v1.0.0"
 
     joblib.dump(best_model, ARTIFACT_DIR / "model.joblib")
+
     summary = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "model_name": "Customer Churn Risk Classifier",
@@ -128,17 +125,17 @@ def main() -> None:
         "mlflow": {
             "tracking_uri": tracking_uri,
             "experiment_name": "churn-model-selection",
+            "note": "MLflow tracks parameters and metrics; the selected serving model is stored with joblib.",
         },
-        "candidate_runs": results,
+        "candidate_runs": candidate_results,
     }
-    (ARTIFACT_DIR / "training_summary.json").write_text(
-        json.dumps(summary, indent=2),
-        encoding="utf-8",
-    )
+
+    summary_path = ARTIFACT_DIR / "training_summary.json"
+    summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
 
     print(json.dumps(summary, indent=2))
     print(f"\nSaved model: {ARTIFACT_DIR / 'model.joblib'}")
-    print(f"Saved summary: {ARTIFACT_DIR / 'training_summary.json'}")
+    print(f"Saved summary: {summary_path}")
     print(f"MLflow backend: {MLFLOW_DB}")
 
 
