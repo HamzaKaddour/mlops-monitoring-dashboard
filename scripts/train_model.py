@@ -35,7 +35,8 @@ from mlops_monitoring.training import (
 
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACT_DIR = ROOT / "artifacts"
-MLRUNS_DIR = ROOT / "mlruns"\nMLFLOW_DB = ROOT / "mlflow.db"
+MLRUNS_DIR = ROOT / "mlruns"
+MLFLOW_DB = ROOT / "mlflow.db"
 
 
 def main() -> None:
