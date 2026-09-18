@@ -8,3 +8,4 @@ mlruns/
 data/predictions.db
 artifacts/model.joblib
 .DS_Store
+mlflow.db\n
