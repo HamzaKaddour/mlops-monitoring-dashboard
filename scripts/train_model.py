@@ -62,7 +62,8 @@ def main() -> None:
         stratify=y_temp,
     )
 
-    mlflow.set_tracking_uri(MLRUNS_DIR.resolve().as_uri())
+    tracking_uri = f"sqlite:///{MLFLOW_DB.resolve()}"
+    mlflow.set_tracking_uri(tracking_uri)
     mlflow.set_experiment("churn-model-selection")
 
     results = []
