@@ -106,12 +106,12 @@ artifacts/training_summary.json
 mlruns/
 ```
 
-The binary model and local MLflow directory are intentionally ignored by Git. The JSON training summary can be committed as a reproducible workstation result.
+The binary model, local MLflow SQLite database, and generated MLflow artifacts are intentionally ignored by Git. The JSON training summary can be committed as a reproducible workstation result.
 
 To inspect the experiments locally:
 
 ```bash
-mlflow ui --backend-store-uri ./mlruns --port 5000
+mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5000
 ```
 
 Then open `http://127.0.0.1:5000`.
