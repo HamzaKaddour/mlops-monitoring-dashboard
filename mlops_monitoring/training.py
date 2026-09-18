@@ -67,7 +67,7 @@ def _preprocessor() -> ColumnTransformer:
     return ColumnTransformer(
         transformers=[
             ("numeric", StandardScaler(), NUMERIC_FEATURES),
-            ("categorical", OneHotEncoder(handle_unknown="ignore"), CATEGORICAL_FEATURES),
+            ("categorical", OneHotEncoder(handle_unknown="ignore", sparse_output=False), CATEGORICAL_FEATURES),
         ]
     )
 
