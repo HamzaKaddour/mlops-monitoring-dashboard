@@ -35,7 +35,7 @@ from mlops_monitoring.training import (
 
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACT_DIR = ROOT / "artifacts"
-MLRUNS_DIR = ROOT / "mlruns"
+MLRUNS_DIR = ROOT / "mlruns"\nMLFLOW_DB = ROOT / "mlflow.db"
 
 
 def main() -> None:
@@ -124,7 +124,7 @@ def main() -> None:
             "target": TARGET,
         },
         "mlflow": {
-            "tracking_uri": MLRUNS_DIR.resolve().as_uri(),
+            "tracking_uri": tracking_uri,
             "experiment_name": "churn-model-selection",
         },
         "candidate_runs": results,
@@ -137,7 +137,7 @@ def main() -> None:
     print(json.dumps(summary, indent=2))
     print(f"\nSaved model: {ARTIFACT_DIR / 'model.joblib'}")
     print(f"Saved summary: {ARTIFACT_DIR / 'training_summary.json'}")
-    print(f"MLflow runs: {MLRUNS_DIR}")
+    print(f"MLflow backend: {MLFLOW_DB}")
 
 
 if __name__ == "__main__":
