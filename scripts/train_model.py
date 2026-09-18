@@ -88,7 +88,7 @@ def main() -> None:
                 }
             )
             mlflow.log_metrics({f"val_{k}": v for k, v in val_metrics.items()})
-            mlflow.sklearn.log_model(model, artifact_path="model")
+            mlflow.sklearn.log_model(\n                model,\n                name="model",\n                serialization_format=mlflow.sklearn.SERIALIZATION_FORMAT_CLOUDPICKLE,\n            )
 
             result = {
                 "run_id": run.info.run_id,
