@@ -2,10 +2,15 @@
 
 A production-style machine learning monitoring project that tracks **model performance, data drift, prediction behavior, operational risk, and model-card metadata** through a reproducible Python pipeline, interactive dashboard, and FastAPI service.
 
-The goal is to demonstrate the part of ML engineering that starts **after training**: monitoring deployed models, detecting distribution shift, surfacing degradation, exposing observability data, and deciding when retraining should be considered.
+The project now covers the full local lifecycle: **candidate training → MLflow experiment tracking → model selection → saved-model inference → prediction logging → drift/performance monitoring → retraining recommendation**.
 
 ## What this project demonstrates
 
+- Reproducible scikit-learn candidate training and validation
+- Local MLflow experiment tracking and model comparison
+- Saved-model FastAPI inference with `POST /predict`
+- SQLite prediction-event logging
+- Rule-based retraining recommendation via `GET /retraining-status`
 - Model performance monitoring across training, validation, and production windows
 - Feature-level data-drift analysis
 - Population Stability Index (PSI) utilities for numeric and categorical features
@@ -87,13 +92,37 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. Generate monitoring artifacts
+### 2. Train the model and record experiments
+
+```bash
+python scripts/train_model.py
+```
+
+This trains multiple candidate classifiers on a deterministic synthetic churn dataset, records each run in a local MLflow file store, selects the best candidate by validation ROC-AUC, and writes:
+
+```text
+artifacts/model.joblib
+artifacts/training_summary.json
+mlruns/
+```
+
+The binary model and local MLflow directory are intentionally ignored by Git. The JSON training summary can be committed as a reproducible workstation result.
+
+To inspect the experiments locally:
+
+```bash
+mlflow ui --backend-store-uri ./mlruns --port 5000
+```
+
+Then open `http://127.0.0.1:5000`.
+
+### 3. Generate monitoring artifacts
 
 ```bash
 python scripts/generate_mlops_artifacts.py
 ```
 
-### 3. Run the dashboard
+### 4. Run the dashboard
 
 ```bash
 python -m http.server 8080
@@ -115,6 +144,9 @@ Useful endpoints:
 
 ```text
 GET /health
+POST /predict
+GET /prediction-events
+GET /retraining-status
 GET /metrics
 GET /drift
 GET /predictions
@@ -201,7 +233,7 @@ The monitoring architecture and PSI implementation are real; the example product
 
 Natural extensions include:
 
-- MLflow experiment tracking and model registry
+- MLflow model registry promotion workflow
 - Evidently monitoring reports
 - Prometheus metrics and alerting
 - OpenTelemetry tracing
@@ -214,4 +246,4 @@ Natural extensions include:
 
 ## Tech stack
 
-`Python` · `FastAPI` · `NumPy` · `Pandas` · `scikit-learn` · `pytest` · `Docker` · `GitHub Actions` · `HTML/CSS/JavaScript` · `MLOps` · `Model Monitoring` · `Data Drift`
+`Python` · `FastAPI` · `NumPy` · `Pandas` · `scikit-learn` · `MLflow` · `SQLite` · `joblib` · `pytest` · `Docker` · `GitHub Actions` · `HTML/CSS/JavaScript` · `MLOps` · `Model Monitoring` · `Data Drift`
