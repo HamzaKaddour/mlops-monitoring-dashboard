@@ -28,5 +28,8 @@ jobs:
       - name: Generate monitoring artifacts
         run: python scripts/generate_mlops_artifacts.py
 
+      - name: Train candidate models with local MLflow tracking
+        run: python scripts/train_model.py
+
       - name: Run unit tests
         run: pytest -q
