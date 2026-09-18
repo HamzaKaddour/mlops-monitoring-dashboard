@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mlops-monitoring-dashboard"
-version = "0.1.0"
-description = "Production-style MLOps monitoring dashboard with drift detection, API serving, tests, and CI."
+version = "0.2.0"
+description = "Local-first MLOps lifecycle with training, MLflow tracking, inference, drift monitoring, and retraining signals."
 requires-python = ">=3.10"
 dependencies = []
 
