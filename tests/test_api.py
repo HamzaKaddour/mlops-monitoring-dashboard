@@ -25,3 +25,29 @@ def test_drift_endpoint_returns_features():
     payload = response.json()
     assert "features" in payload
     assert isinstance(payload["features"], list)
+
+
+def test_predict_endpoint_runs_saved_model():
+    response = client.post(
+        "/predict",
+        json={
+            "tenure_months": 8,
+            "monthly_charges": 98.5,
+            "support_tickets_30d": 4,
+            "contract_type": "month_to_month",
+            "payment_method": "electronic_check",
+            "internet_service": "fiber",
+        },
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["prediction"] in (0, 1)
+    assert 0.0 <= payload["churn_probability"] <= 1.0
+
+
+def test_retraining_status_endpoint():
+    response = client.get("/retraining-status")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] in {"healthy", "watch", "retrain"}
+    assert "retraining_recommended" in payload
