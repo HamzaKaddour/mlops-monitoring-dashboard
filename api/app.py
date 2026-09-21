@@ -15,6 +15,7 @@ from mlops_monitoring.retraining import recommend_retraining
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "data"
+ARTIFACT_DIR = ROOT / "artifacts"
 
 app = FastAPI(
     title="MLOps Monitoring API",
@@ -32,8 +33,8 @@ class PredictionRequest(BaseModel):
     internet_service: Literal["fiber", "dsl", "none"]
 
 
-def load_json(filename: str) -> dict[str, Any]:
-    path = DATA_DIR / filename
+def load_json(filename: str, directory: Path = DATA_DIR) -> dict[str, Any]:
+    path = directory / filename
     if not path.exists():
         raise HTTPException(status_code=503, detail=f"Monitoring artifact not found: {filename}")
     return json.loads(path.read_text(encoding="utf-8"))
@@ -63,6 +64,11 @@ def predict(request: PredictionRequest) -> dict[str, Any]:
 @app.get("/prediction-events")
 def prediction_events(limit: int = Query(default=20, ge=1, le=200)) -> dict[str, Any]:
     return {"items": recent_predictions(limit=limit)}
+
+
+@app.get("/training-summary")
+def training_summary() -> dict[str, Any]:
+    return load_json("training_summary.json", ARTIFACT_DIR)
 
 
 @app.get("/metrics")
