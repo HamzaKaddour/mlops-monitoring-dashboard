@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MLOps Monitoring Console</title>
   <meta name="description" content="MLOps monitoring console for model performance, data drift, prediction monitoring, alerts, and model-card reporting." />
+  <link rel="icon" type="image/svg+xml" href="assets/m-logo.svg" />
   <link rel="stylesheet" href="css/styles.css" />
   <script defer src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <script defer src="js/app.js"></script>
@@ -13,7 +14,7 @@
   <div class="app-shell">
     <aside class="sidebar">
       <div class="brand-block">
-        <div class="brand-icon">M</div>
+        <img class="brand-logo" src="assets/m-logo.svg" alt="MLOps Console M logo" />
         <div>
           <strong>MLOps Console</strong>
           <span>Model Reliability</span>
@@ -53,6 +54,7 @@
       <main>
         <section id="overview" class="overview-panel">
           <div class="overview-copy">
+            <div class="hero-brand"><img class="hero-logo" src="assets/m-logo.svg" alt="" aria-hidden="true" /><div><span class="hero-product">MLOps Console</span><span class="hero-subtitle">Local-first model lifecycle monitoring</span></div></div>
             <span class="section-kicker">Lifecycle observability</span>
             <h2>Inspect training, serving, drift, telemetry, and retraining signals in one reproducible MLOps workflow.</h2>
             <p>This console combines a real local training/inference workflow with explicitly simulated monitoring windows so the MLOps behavior can be reproduced without proprietary production data.</p>
