@@ -41,11 +41,11 @@
     <div class="workspace">
       <header class="topbar">
         <div>
-          <p class="crumb">Production / Churn Risk / Monitoring</p>
+          <p class="crumb">Local demo / Churn Risk / Monitoring</p>
           <h1>MLOps Monitoring Console</h1>
         </div>
         <div class="topbar-actions">
-          <span class="env-pill">Batch scoring</span>
+          <span class="env-pill">Synthetic monitoring</span>
           <span class="sync-pill"><span></span> Artifacts loaded</span>
         </div>
       </header>
@@ -53,9 +53,9 @@
       <main>
         <section id="overview" class="overview-panel">
           <div class="overview-copy">
-            <span class="section-kicker">Post-deployment reliability</span>
-            <h2>Monitor model health before quality decay becomes a production issue.</h2>
-            <p>This console tracks model quality, feature drift, prediction behavior, alert status, and governance metadata for a customer churn risk classifier.</p>
+            <span class="section-kicker">Lifecycle observability</span>
+            <h2>Inspect training, serving, drift, telemetry, and retraining signals in one reproducible MLOps workflow.</h2>
+            <p>This console combines a real local training/inference workflow with explicitly simulated monitoring windows so the MLOps behavior can be reproduced without proprietary production data.</p>
           </div>
           <div class="ops-flow">
             <div><span>01</span> Train</div>
@@ -69,9 +69,9 @@
         <section class="kpi-strip" id="summaryGrid"></section>
 
         <section class="method-board">
-          <article><span>Performance windows</span><p>Training, validation, 7-day production, and 30-day production windows are compared side by side.</p></article>
-          <article><span>Feature drift</span><p>Feature-level drift scores identify which production inputs shifted away from the validation baseline.</p></article>
-          <article><span>Prediction behavior</span><p>Daily scoring volume, positive rate, and confidence are monitored for distribution changes.</p></article>
+          <article><span>Performance windows</span><p>Validation, held-out test, and simulated monitoring windows are compared side by side.</p></article>
+          <article><span>Feature drift</span><p>Feature-level drift scores show which current inputs shifted away from the synthetic reference baseline.</p></article>
+          <article><span>Prediction behavior</span><p>Synthetic daily scoring volume, positive rate, and confidence illustrate distribution monitoring.</p></article>
           <article><span>Alerting</span><p>Risk indicators summarize performance degradation, drift, volume, and confidence stability.</p></article>
         </section>
 
