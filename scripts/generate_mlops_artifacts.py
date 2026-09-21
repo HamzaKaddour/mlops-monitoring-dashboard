@@ -41,15 +41,7 @@ def build_model_metrics(training: dict) -> dict:
     validation_auc = float(training["validation_roc_auc"])
 
     # Synthetic monitoring windows derived from the real held-out result.
-    validation = {
-        "window": "validation",
-        "auc": round(validation_auc, 4),
-        "f1": round(float(training["candidate_runs"][0]["validation_metrics"]["f1"]), 4),
-        "accuracy": round(float(training["candidate_runs"][0]["validation_metrics"]["accuracy"]), 4),
-        "precision": round(float(training["candidate_runs"][0]["validation_metrics"]["precision"]), 4),
-        "recall": round(float(training["candidate_runs"][0]["validation_metrics"]["recall"]), 4),
-        "log_loss": round(float(training["candidate_runs"][0]["validation_metrics"]["log_loss"]), 4),
-    }
+    selected_run = next(\n        run for run in training["candidate_runs"]\n        if run["candidate"] == training["selected_candidate"]\n    )\n    selected_validation = selected_run["validation_metrics"]\n\n    validation = {\n        "window": "validation",\n        "auc": round(validation_auc, 4),\n        "f1": round(float(selected_validation["f1"]), 4),\n        "accuracy": round(float(selected_validation["accuracy"]), 4),\n        "precision": round(float(selected_validation["precision"]), 4),\n        "recall": round(float(selected_validation["recall"]), 4),\n        "log_loss": round(float(selected_validation["log_loss"]), 4),\n    }
     test_window = {
         "window": "held_out_test",
         "auc": round(float(test["roc_auc"]), 4),
