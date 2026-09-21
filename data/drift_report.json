@@ -1,21 +1,76 @@
 {
-  "reference_window": "validation",
-  "current_window": "production_7d",
+  "reference_window": "synthetic_reference",
+  "current_window": "synthetic_shifted_current",
   "overall_drift_status": "watch",
-  "drift_score": 0.186,
-  "thresholds": {"low": 0.1, "medium": 0.2, "high": 0.35},
+  "drift_score": 0.3655,
+  "thresholds": {
+    "stable": 0.1,
+    "watch": 0.25
+  },
   "features": [
-    {"feature": "monthly_charges", "type": "numeric", "drift_score": 0.271, "status": "watch", "direction": "higher than baseline"},
-    {"feature": "contract_type", "type": "categorical", "drift_score": 0.238, "status": "watch", "direction": "more month-to-month contracts"},
-    {"feature": "support_tickets_30d", "type": "numeric", "drift_score": 0.221, "status": "watch", "direction": "higher than baseline"},
-    {"feature": "tenure_months", "type": "numeric", "drift_score": 0.176, "status": "stable", "direction": "slightly lower than baseline"},
-    {"feature": "payment_method", "type": "categorical", "drift_score": 0.141, "status": "stable", "direction": "minor category shift"},
-    {"feature": "internet_service", "type": "categorical", "drift_score": 0.094, "status": "stable", "direction": "within baseline range"}
+    {
+      "feature": "monthly_charges",
+      "type": "numeric",
+      "drift_score": 0.151068,
+      "status": "watch",
+      "direction": "higher than reference"
+    },
+    {
+      "feature": "contract_type",
+      "type": "categorical",
+      "drift_score": 0.147821,
+      "status": "watch",
+      "direction": "more month-to-month contracts"
+    },
+    {
+      "feature": "support_tickets_30d",
+      "type": "numeric",
+      "drift_score": 1.879992,
+      "status": "alert",
+      "direction": "higher than reference"
+    },
+    {
+      "feature": "tenure_months",
+      "type": "numeric",
+      "drift_score": 0.011946,
+      "status": "stable",
+      "direction": "within reference range"
+    },
+    {
+      "feature": "payment_method",
+      "type": "categorical",
+      "drift_score": 0.000615,
+      "status": "stable",
+      "direction": "within reference range"
+    },
+    {
+      "feature": "internet_service",
+      "type": "categorical",
+      "drift_score": 0.001788,
+      "status": "stable",
+      "direction": "within reference range"
+    }
   ],
   "alerts": [
-    {"name": "AUC degradation", "severity": "watch", "message": "Production AUC is 0.034 below validation AUC. Monitor for sustained decline."},
-    {"name": "Feature drift", "severity": "watch", "message": "Three features exceed the medium drift threshold."},
-    {"name": "Prediction volume", "severity": "ok", "message": "Prediction volume is within the expected range."},
-    {"name": "Confidence distribution", "severity": "ok", "message": "Average confidence remains stable relative to the previous production window."}
+    {
+      "name": "AUC degradation",
+      "severity": "watch",
+      "message": "The simulated 7-day monitoring AUC is below validation AUC."
+    },
+    {
+      "name": "Feature drift",
+      "severity": "watch",
+      "message": "Evidently flags three of six monitored features as drifted."
+    },
+    {
+      "name": "Prediction volume",
+      "severity": "ok",
+      "message": "Simulated prediction volume remains within the configured demonstration range."
+    },
+    {
+      "name": "Inference telemetry",
+      "severity": "ok",
+      "message": "Prometheus instrumentation is available from the serving API."
+    }
   ]
 }
