@@ -535,3 +535,51 @@ p { margin: 0; color: var(--muted); line-height: 1.6; }
   font-size: .78rem;
   font-weight: 700;
 }
+
+
+.brand-mark-wrap,
+.hero-logo-wrap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+.brand-mark-wrap {
+  width: 46px;
+  height: 46px;
+}
+.brand-mark-label,
+.hero-logo-letter {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 1000;
+  line-height: 1;
+  pointer-events: none;
+}
+.brand-mark-label {
+  font-size: 1.28rem;
+}
+.hero-logo-wrap {
+  width: 64px;
+  height: 64px;
+}
+.hero-logo-wrap .hero-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+}
+.hero-logo-letter {
+  font-size: 1.8rem;
+}
+.hero-brand {
+  padding: .8rem .95rem;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff, #f8fbff);
+}
+.hero-product {
+  font-size: 1.08rem;
+}
