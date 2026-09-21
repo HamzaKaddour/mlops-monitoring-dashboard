@@ -27,6 +27,7 @@
         <a href="#drift">Data Drift</a>
         <a href="#predictions">Predictions</a>
         <a href="#alerts">Alerts</a>
+        <a href="#observability">Observability</a>
         <a href="#model-card-section">Model Card</a>
       </nav>
 
@@ -134,6 +135,36 @@
             <div class="card-title-row"><div><span class="section-kicker">Alert center</span><h2>Production risk indicators</h2></div><span class="metric-tag">Health</span></div>
             <div id="alertList" class="alert-list"></div>
           </article>
+        </section>
+
+
+        <section class="console-card observability-card" id="observability">
+          <div class="card-title-row">
+            <div>
+              <span class="section-kicker">Observability stack</span>
+              <h2>Evidently drift checks and Prometheus inference telemetry</h2>
+              <p>The monitoring layer combines offline feature-drift analysis with live inference metrics. Evidently compares reference and current feature distributions; Prometheus exposes counters, gauges, and latency histograms from the serving API.</p>
+            </div>
+            <span class="metric-tag">Evidently · Prometheus · Grafana</span>
+          </div>
+          <div class="observability-grid">
+            <article class="obs-panel">
+              <div class="obs-heading">
+                <div><span class="tiny-label">Evidently</span><h3>Reference vs current drift</h3></div>
+                <span id="evidentlyStatus" class="status-chip">Loading</span>
+              </div>
+              <div id="evidentlyKpis" class="obs-kpis"></div>
+              <div id="evidentlyFeatureList" class="feature-list"></div>
+            </article>
+            <article class="obs-panel">
+              <div class="obs-heading">
+                <div><span class="tiny-label">Prometheus</span><h3>Live inference telemetry</h3></div>
+                <span class="status-chip stable">Instrumented</span>
+              </div>
+              <div id="prometheusMetrics" class="metric-list"></div>
+              <p class="obs-note">The local Docker Compose stack can scrape these metrics into Prometheus and provision a Grafana dashboard automatically.</p>
+            </article>
+          </div>
         </section>
 
         <section class="console-card" id="model-card-section">
