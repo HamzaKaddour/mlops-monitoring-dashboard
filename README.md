@@ -2,7 +2,7 @@
 
 A production-style machine learning monitoring project that tracks **model performance, data drift, prediction behavior, operational risk, and model-card metadata** through a reproducible Python pipeline, interactive dashboard, and FastAPI service.
 
-The project now covers the full local lifecycle: **candidate training → MLflow experiment tracking → model selection → saved-model inference → prediction logging → drift/performance monitoring → retraining recommendation**.
+The project now covers the full local lifecycle: **candidate training → MLflow experiment tracking → model selection → saved-model inference → prediction logging → drift/performance monitoring → retraining recommendation**. The public dashboard also surfaces the committed workstation training summary so model-selection results and monitoring behavior can be inspected together.
 
 ## What this project demonstrates
 
@@ -40,9 +40,12 @@ Monitoring artifact generator
           |                   |
           v                   v
    FastAPI service      Static dashboard
-   /metrics             index.html
-   /drift               JavaScript + CSS
-   /predictions
+   /predict             index.html
+   /prediction-events   JavaScript + CSS
+   /training-summary    workstation training result
+   /metrics             monitoring artifacts
+   /drift
+   /retraining-status
    /model-card
           |
           v
@@ -98,12 +101,12 @@ pip install -r requirements.txt
 python scripts/train_model.py
 ```
 
-This trains multiple candidate classifiers on a deterministic synthetic churn dataset, records each run in a local MLflow file store, selects the best candidate by validation ROC-AUC, and writes:
+This trains multiple candidate classifiers on a deterministic synthetic churn dataset, records each run in a local MLflow SQLite backend, selects the best candidate by validation ROC-AUC, and writes:
 
 ```text
 artifacts/model.joblib
 artifacts/training_summary.json
-mlruns/
+mlflow.db
 ```
 
 The binary model, local MLflow SQLite database, and generated MLflow artifacts are intentionally ignored by Git. The JSON training summary can be committed as a reproducible workstation result.
@@ -144,6 +147,7 @@ Useful endpoints:
 
 ```text
 GET /health
+GET /training-summary
 POST /predict
 GET /prediction-events
 GET /retraining-status
@@ -173,6 +177,20 @@ Then open:
 ```text
 http://localhost:8000/docs
 ```
+
+## Published workstation result
+
+The repository includes a sanitized `artifacts/training_summary.json` generated on the workstation. It records the selected candidate, validation ROC-AUC, held-out test metrics, dataset split sizes, and MLflow run IDs without publishing local filesystem paths or the binary model.
+
+Current committed result:
+
+- selected candidate: `logistic_regression`
+- validation ROC-AUC: `0.7443`
+- held-out test ROC-AUC: `0.7487`
+- held-out test F1: `0.5329`
+- rows: `6000` synthetic examples
+
+The moderate model score is intentional: the repository is designed to demonstrate the MLOps lifecycle and monitoring behavior rather than manufacture an unrealistically easy benchmark.
 
 ## Drift monitoring
 
