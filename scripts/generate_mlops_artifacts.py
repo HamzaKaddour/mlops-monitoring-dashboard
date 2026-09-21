@@ -1,9 +1,9 @@
 """Generate reproducible monitoring artifacts for the selected churn model.
 
 The trained model and held-out metrics come from artifacts/training_summary.json.
-The production-like monitoring windows are intentionally simulated so the
-repository can demonstrate drift, performance degradation, alerts, and
-retraining logic without proprietary production data.
+The monitoring windows are intentionally simulated so the repository can
+demonstrate drift, performance degradation, alerts, and retraining logic
+without proprietary production data.
 """
 
 from __future__ import annotations
@@ -40,8 +40,23 @@ def build_model_metrics(training: dict) -> dict:
     test = training["test_metrics"]
     validation_auc = float(training["validation_roc_auc"])
 
-    # Synthetic monitoring windows derived from the real held-out result.
-    selected_run = next(\n        run for run in training["candidate_runs"]\n        if run["candidate"] == training["selected_candidate"]\n    )\n    selected_validation = selected_run["validation_metrics"]\n\n    validation = {\n        "window": "validation",\n        "auc": round(validation_auc, 4),\n        "f1": round(float(selected_validation["f1"]), 4),\n        "accuracy": round(float(selected_validation["accuracy"]), 4),\n        "precision": round(float(selected_validation["precision"]), 4),\n        "recall": round(float(selected_validation["recall"]), 4),\n        "log_loss": round(float(selected_validation["log_loss"]), 4),\n    }
+    selected_run = next(
+        run
+        for run in training["candidate_runs"]
+        if run["candidate"] == training["selected_candidate"]
+    )
+    selected_validation = selected_run["validation_metrics"]
+
+    validation = {
+        "window": "validation",
+        "auc": round(validation_auc, 4),
+        "f1": round(float(selected_validation["f1"]), 4),
+        "accuracy": round(float(selected_validation["accuracy"]), 4),
+        "precision": round(float(selected_validation["precision"]), 4),
+        "recall": round(float(selected_validation["recall"]), 4),
+        "log_loss": round(float(selected_validation["log_loss"]), 4),
+    }
+
     test_window = {
         "window": "held_out_test",
         "auc": round(float(test["roc_auc"]), 4),
@@ -52,7 +67,7 @@ def build_model_metrics(training: dict) -> dict:
         "log_loss": round(float(test["log_loss"]), 4),
     }
 
-    prod7 = {
+    monitoring_7d = {
         "window": "simulated_monitoring_7d",
         "auc": bounded(float(test["roc_auc"]) - 0.034),
         "f1": bounded(float(test["f1"]) - 0.031),
@@ -61,7 +76,8 @@ def build_model_metrics(training: dict) -> dict:
         "recall": bounded(float(test["recall"]) - 0.029),
         "log_loss": round(float(test["log_loss"]) + 0.041, 4),
     }
-    prod30 = {
+
+    monitoring_30d = {
         "window": "simulated_monitoring_30d",
         "auc": bounded(float(test["roc_auc"]) - 0.025),
         "f1": bounded(float(test["f1"]) - 0.022),
@@ -71,7 +87,7 @@ def build_model_metrics(training: dict) -> dict:
         "log_loss": round(float(test["log_loss"]) + 0.030, 4),
     }
 
-    auc_delta = round(prod7["auc"] - validation["auc"], 4)
+    auc_delta = round(monitoring_7d["auc"] - validation["auc"], 4)
 
     return {
         "generated_at": f"{date.today().isoformat()}T00:00:00Z",
@@ -83,14 +99,14 @@ def build_model_metrics(training: dict) -> dict:
         "data_scope": "synthetic monitoring demonstration",
         "summary": {
             "health_status": "watch" if auc_delta <= -0.03 else "ok",
-            "current_auc": prod7["auc"],
-            "current_f1": prod7["f1"],
-            "current_accuracy": prod7["accuracy"],
+            "current_auc": monitoring_7d["auc"],
+            "current_f1": monitoring_7d["f1"],
+            "current_accuracy": monitoring_7d["accuracy"],
             "auc_delta_from_validation": auc_delta,
             "predictions_last_7_days": 28420,
             "retraining_recommended": auc_delta <= -0.05,
         },
-        "windows": [validation, test_window, prod7, prod30],
+        "windows": [validation, test_window, monitoring_7d, monitoring_30d],
         "experiments": [
             {
                 "run_id": run["run_id"],
@@ -112,6 +128,7 @@ def build_drift_report() -> dict:
         ("payment_method", "categorical", 0.000615, "within reference range"),
         ("internet_service", "categorical", 0.001788, "within reference range"),
     ]
+
     feature_rows = []
     for name, typ, score, direction in features:
         status = "alert" if score >= 0.25 else "watch" if score >= 0.10 else "stable"
@@ -126,6 +143,7 @@ def build_drift_report() -> dict:
         )
 
     drift_score = sum(row["drift_score"] for row in feature_rows) / len(feature_rows)
+
     return {
         "reference_window": "synthetic_reference",
         "current_window": "synthetic_shifted_current",
@@ -161,25 +179,53 @@ def build_drift_report() -> dict:
 def build_prediction_logs() -> dict:
     start = date.today() - timedelta(days=13)
     daily = []
+
     for idx in range(14):
         day = start + timedelta(days=idx)
         daily.append(
             {
                 "date": day.isoformat(),
                 "predictions": int(3900 + idx * 25 + RNG.gauss(0, 120)),
-                "positive_rate": round(0.19 + idx * 0.003 + RNG.gauss(0, 0.008), 3),
-                "avg_confidence": round(0.812 - idx * 0.0015 + RNG.gauss(0, 0.004), 3),
+                "positive_rate": round(
+                    0.19 + idx * 0.003 + RNG.gauss(0, 0.008),
+                    3,
+                ),
+                "avg_confidence": round(
+                    0.812 - idx * 0.0015 + RNG.gauss(0, 0.004),
+                    3,
+                ),
             }
         )
+
     return {
         "window": "simulated_last_14_days",
         "scope": "synthetic monitoring demonstration",
         "daily": daily,
         "segments": [
-            {"segment": "new_customers", "volume": 8120, "positive_rate": 0.281, "avg_confidence": 0.775},
-            {"segment": "month_to_month", "volume": 17480, "positive_rate": 0.318, "avg_confidence": 0.764},
-            {"segment": "annual_contract", "volume": 15230, "positive_rate": 0.118, "avg_confidence": 0.842},
-            {"segment": "high_support_tickets", "volume": 4910, "positive_rate": 0.386, "avg_confidence": 0.751},
+            {
+                "segment": "new_customers",
+                "volume": 8120,
+                "positive_rate": 0.281,
+                "avg_confidence": 0.775,
+            },
+            {
+                "segment": "month_to_month",
+                "volume": 17480,
+                "positive_rate": 0.318,
+                "avg_confidence": 0.764,
+            },
+            {
+                "segment": "annual_contract",
+                "volume": 15230,
+                "positive_rate": 0.118,
+                "avg_confidence": 0.842,
+            },
+            {
+                "segment": "high_support_tickets",
+                "volume": 4910,
+                "positive_rate": 0.386,
+                "avg_confidence": 0.751,
+            },
         ],
     }
 
@@ -191,8 +237,9 @@ def build_model_card(training: dict) -> dict:
         "owner": "Portfolio demonstration",
         "last_updated": date.today().isoformat(),
         "intended_use": (
-            "Demonstrate an end-to-end MLOps lifecycle using a churn-risk classifier, "
-            "including experiment tracking, serving, monitoring, and retraining signals."
+            "Demonstrate an end-to-end MLOps lifecycle using a churn-risk "
+            "classifier, including experiment tracking, serving, monitoring, "
+            "and retraining signals."
         ),
         "model_type": "Logistic Regression",
         "training_data": (
@@ -201,15 +248,33 @@ def build_model_card(training: dict) -> dict:
         ),
         "input_features": training["dataset"]["features"],
         "limitations": [
-            "The dataset and monitoring windows are synthetic and are not evidence of real-world production performance.",
-            "The repository demonstrates MLOps system behavior rather than a domain-validated churn model.",
-            "Prometheus counters reset when the local API process restarts unless an external Prometheus server persists them.",
+            (
+                "The dataset and monitoring windows are synthetic and are not "
+                "evidence of real-world production performance."
+            ),
+            (
+                "The repository demonstrates MLOps system behavior rather than "
+                "a domain-validated churn model."
+            ),
+            (
+                "Prometheus counters reset when the local API process restarts "
+                "unless an external Prometheus server persists them."
+            ),
         ],
         "monitoring_requirements": [
-            "Track ROC-AUC, F1, precision, recall, and log loss across validation and monitoring windows.",
+            (
+                "Track ROC-AUC, F1, precision, recall, and log loss across "
+                "validation and monitoring windows."
+            ),
             "Run Evidently feature-drift checks against the reference distribution.",
-            "Scrape inference counters, probability gauges, and latency histograms from Prometheus metrics.",
-            "Review retraining when AUC falls by at least 0.05 or PSI drift crosses configured thresholds.",
+            (
+                "Scrape inference counters, probability gauges, and latency "
+                "histograms from Prometheus metrics."
+            ),
+            (
+                "Review retraining when AUC falls by at least 0.05 or PSI "
+                "drift crosses configured thresholds."
+            ),
         ],
         "deployment": {
             "environment": "local FastAPI demo",
