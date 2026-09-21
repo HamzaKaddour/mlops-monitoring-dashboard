@@ -1,0 +1,75 @@
+{
+  "generated_at": "2026-09-21T13:16:38.222144+00:00",
+  "model_name": "Customer Churn Risk Classifier",
+  "model_version": "v1.0.0",
+  "selected_candidate": "logistic_regression",
+  "selection_metric": "validation_roc_auc",
+  "validation_roc_auc": 0.7443,
+  "test_metrics": {
+    "roc_auc": 0.7487,
+    "f1": 0.5329,
+    "accuracy": 0.74,
+    "precision": 0.6642,
+    "recall": 0.445,
+    "log_loss": 0.5461
+  },
+  "dataset": {
+    "source": "deterministic synthetic churn scenario",
+    "rows": 6000,
+    "train_rows": 3600,
+    "validation_rows": 1200,
+    "test_rows": 1200,
+    "features": [
+      "tenure_months",
+      "monthly_charges",
+      "support_tickets_30d",
+      "contract_type",
+      "payment_method",
+      "internet_service"
+    ],
+    "target": "churn_within_30_days"
+  },
+  "mlflow": {
+    "tracking_uri": "sqlite:////home/hkaddour/Desktop/mlops-monitoring-dashboard/mlflow.db",
+    "experiment_name": "churn-model-selection",
+    "note": "MLflow tracks parameters and metrics; the selected serving model is stored with joblib."
+  },
+  "candidate_runs": [
+    {
+      "run_id": "b7a1e13b87564e738e540640ff34f3fc",
+      "candidate": "logistic_regression",
+      "validation_metrics": {
+        "roc_auc": 0.7443,
+        "f1": 0.457,
+        "accuracy": 0.7108,
+        "precision": 0.6109,
+        "recall": 0.365,
+        "log_loss": 0.5463
+      }
+    },
+    {
+      "run_id": "efd7a1c661834a42a33c4812df3c0929",
+      "candidate": "random_forest",
+      "validation_metrics": {
+        "roc_auc": 0.7196,
+        "f1": 0.4746,
+        "accuracy": 0.7067,
+        "precision": 0.5889,
+        "recall": 0.3975,
+        "log_loss": 0.5678
+      }
+    },
+    {
+      "run_id": "c2804b9f928145849eeb34c264a0941e",
+      "candidate": "hist_gradient_boosting",
+      "validation_metrics": {
+        "roc_auc": 0.714,
+        "f1": 0.4844,
+        "accuracy": 0.6967,
+        "precision": 0.5588,
+        "recall": 0.4275,
+        "log_loss": 0.579
+      }
+    }
+  ]
+}
