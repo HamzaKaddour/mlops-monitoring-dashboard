@@ -40,16 +40,16 @@ function num(value) { return Number(value).toLocaleString(); }
 
 function renderSidebar() {
   document.getElementById("sidebarModelName").textContent = state.metrics.model_name;
-  document.getElementById("sidebarModelVersion").textContent = `${state.metrics.model_version} · ${state.metrics.problem_type.replaceAll("_", " ")}`;
+  document.getElementById("sidebarModelVersion").textContent = `${state.metrics.model_version} · ${prettyName(state.metrics.selected_candidate || state.training.selected_candidate)}`;
 }
 
 function renderSummary() {
   const s = state.metrics.summary;
   const cards = [
     ["Health status", s.health_status.toUpperCase(), "Current production state"],
-    ["Production AUC", s.current_auc.toFixed(3), `${s.auc_delta_from_validation.toFixed(3)} vs validation`],
-    ["Production F1", s.current_f1.toFixed(3), "Current production window"],
-    ["Predictions / 7d", num(s.predictions_last_7_days), "Observed scoring volume"]
+    ["Monitoring AUC", s.current_auc.toFixed(3), `${s.auc_delta_from_validation.toFixed(3)} vs validation`],
+    ["Monitoring F1", s.current_f1.toFixed(3), "Simulated 7-day window"],
+    ["Predictions / 7d", num(s.predictions_last_7_days), "Simulated scoring volume"]
   ];
   document.getElementById("summaryGrid").innerHTML = cards.map(([label, value, note]) => `
     <article class="kpi-card">
@@ -219,7 +219,7 @@ function renderModelCard() {
     ["Intended use", card.intended_use],
     ["Training data", card.training_data],
     ["Inputs", card.input_features.join(", ")],
-    ["Deployment", `${card.deployment.environment}, ${card.deployment.cadence}; p95 latency ${card.deployment.current_p95_latency_ms} ms`],
+    ["Deployment", `${card.deployment.environment}, ${card.deployment.cadence}${card.deployment.current_p95_latency_ms != null ? `; p95 latency ${card.deployment.current_p95_latency_ms} ms` : ""}`],
     ["Limitations", card.limitations.join(" ")],
     ["Monitoring", card.monitoring_requirements.join(" ")]
   ];
