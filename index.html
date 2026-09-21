@@ -22,6 +22,7 @@
 
       <nav class="side-nav" aria-label="Dashboard navigation">
         <a href="#overview" class="active">Overview</a>
+        <a href="#training">Training</a>
         <a href="#quality">Model Quality</a>
         <a href="#drift">Data Drift</a>
         <a href="#predictions">Predictions</a>
@@ -71,6 +72,44 @@
           <article><span>Feature drift</span><p>Feature-level drift scores identify which production inputs shifted away from the validation baseline.</p></article>
           <article><span>Prediction behavior</span><p>Daily scoring volume, positive rate, and confidence are monitored for distribution changes.</p></article>
           <article><span>Alerting</span><p>Risk indicators summarize performance degradation, drift, volume, and confidence stability.</p></article>
+        </section>
+
+
+        <section class="console-card training-card" id="training">
+          <div class="card-title-row">
+            <div>
+              <span class="section-kicker">Workstation training result</span>
+              <h2>Model selection and held-out test performance</h2>
+              <p>The training pipeline compares multiple scikit-learn candidates with MLflow tracking, selects by validation ROC-AUC, and evaluates the selected model once on a held-out test set.</p>
+            </div>
+            <span class="metric-tag" id="trainingGeneratedAt">Loading result</span>
+          </div>
+          <div class="training-kpis" id="trainingKpis"></div>
+          <div class="training-grid">
+            <div>
+              <h3>Candidate comparison</h3>
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>Candidate</th><th>Val ROC-AUC</th><th>Val F1</th><th>Accuracy</th><th>Log loss</th></tr>
+                  </thead>
+                  <tbody id="candidateTable"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="lifecycle-panel">
+              <h3>Lifecycle implemented in this repository</h3>
+              <ol>
+                <li><strong>Train:</strong> three candidate classifiers on deterministic synthetic churn data.</li>
+                <li><strong>Track:</strong> MLflow records parameters and validation metrics in local SQLite.</li>
+                <li><strong>Select:</strong> choose the best candidate by validation ROC-AUC.</li>
+                <li><strong>Serve:</strong> FastAPI loads the selected joblib artifact for <code>POST /predict</code>.</li>
+                <li><strong>Observe:</strong> SQLite stores prediction events and monitoring artifacts track drift and quality.</li>
+                <li><strong>Review:</strong> a policy combines performance degradation and PSI drift into a retraining recommendation.</li>
+              </ol>
+              <div id="retrainingPanel" class="retraining-panel"></div>
+            </div>
+          </div>
         </section>
 
         <section class="content-grid" id="quality">
