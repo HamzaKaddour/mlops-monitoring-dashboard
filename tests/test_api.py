@@ -64,3 +64,10 @@ def test_training_summary_endpoint():
     }
     assert "test_metrics" in payload
     assert payload["mlflow"]["tracking_uri"] == "sqlite:///mlflow.db"
+
+
+def test_prometheus_metrics_endpoint():
+    response = client.get("/prometheus-metrics")
+    assert response.status_code == 200
+    assert "mlops_prediction_requests_total" in response.text
+    assert "mlops_inference_latency_seconds" in response.text
