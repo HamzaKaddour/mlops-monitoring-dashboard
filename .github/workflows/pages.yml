@@ -1,0 +1,45 @@
+name: Deploy static dashboard
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare static dashboard
+        run: |
+          mkdir -p static/css static/js static/data static/artifacts
+          cp css/styles.css static/css/styles.css
+          cp js/app.js static/js/app.js
+          cp data/model_metrics.json static/data/model_metrics.json
+          cp data/drift_report.json static/data/drift_report.json
+          cp data/prediction_logs.json static/data/prediction_logs.json
+          cp data/model_card.json static/data/model_card.json
+          cp data/observability_summary.json static/data/observability_summary.json
+          cp artifacts/training_summary.json static/artifacts/training_summary.json
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./static
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
