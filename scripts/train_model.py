@@ -123,9 +123,9 @@ def main() -> None:
             "target": TARGET,
         },
         "mlflow": {
-            "tracking_uri": tracking_uri,
+            "tracking_uri": "sqlite:///mlflow.db",
             "experiment_name": "churn-model-selection",
-            "note": "MLflow tracks parameters and metrics; the selected serving model is stored with joblib.",
+            "note": "MLflow tracks local experiment parameters and metrics in SQLite; the selected serving model is stored with joblib and is not committed.",
         },
         "candidate_runs": candidate_results,
     }
