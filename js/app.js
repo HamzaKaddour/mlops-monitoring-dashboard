@@ -1,4 +1,4 @@
-const state = { metrics: null, drift: null, predictions: null, modelCard: null };
+const state = { metrics: null, drift: null, predictions: null, modelCard: null, training: null };
 
 const baseLayout = {
   paper_bgcolor: "rgba(0,0,0,0)",
@@ -11,19 +11,22 @@ const baseLayout = {
 };
 
 async function loadData() {
-  const [metricsRes, driftRes, predictionsRes, cardRes] = await Promise.all([
+  const [metricsRes, driftRes, predictionsRes, cardRes, trainingRes] = await Promise.all([
     fetch("data/model_metrics.json"),
     fetch("data/drift_report.json"),
     fetch("data/prediction_logs.json"),
-    fetch("data/model_card.json")
+    fetch("data/model_card.json"),
+    fetch("artifacts/training_summary.json")
   ]);
   state.metrics = await metricsRes.json();
   state.drift = await driftRes.json();
   state.predictions = await predictionsRes.json();
   state.modelCard = await cardRes.json();
+  state.training = await trainingRes.json();
 
   renderSidebar();
   renderSummary();
+  renderTraining();
   renderCharts();
   renderAlerts();
   renderModelCard();
@@ -51,6 +54,68 @@ function renderSummary() {
       <div class="kpi-value">${value}</div>
       <div class="kpi-note">${note}</div>
     </article>`).join("");
+}
+
+
+function prettyName(value) {
+  return String(value).replaceAll("_", " ").replace(/\b\w/g, ch => ch.toUpperCase());
+}
+
+function renderTraining() {
+  const t = state.training;
+  if (!t) return;
+
+  document.getElementById("trainingGeneratedAt").textContent =
+    new Date(t.generated_at).toLocaleString();
+
+  const test = t.test_metrics;
+  const kpis = [
+    ["Selected model", prettyName(t.selected_candidate), "Chosen by validation ROC-AUC"],
+    ["Validation ROC-AUC", t.validation_roc_auc.toFixed(4), "Model-selection metric"],
+    ["Test ROC-AUC", test.roc_auc.toFixed(4), "Held-out evaluation"],
+    ["Test F1", test.f1.toFixed(4), "Thresholded classification"],
+    ["Test accuracy", pct(test.accuracy), "Held-out test set"],
+    ["Dataset", num(t.dataset.rows), "Synthetic, deterministic rows"]
+  ];
+
+  document.getElementById("trainingKpis").innerHTML = kpis.map(([label, value, note]) => `
+    <article class="mini-kpi">
+      <div class="kpi-label">${label}</div>
+      <div class="mini-kpi-value">${value}</div>
+      <div class="kpi-note">${note}</div>
+    </article>
+  `).join("");
+
+  document.getElementById("candidateTable").innerHTML = t.candidate_runs.map(run => {
+    const m = run.validation_metrics;
+    const selected = run.candidate === t.selected_candidate;
+    return `
+      <tr class="${selected ? "selected-row" : ""}">
+        <td><strong>${prettyName(run.candidate)}</strong>${selected ? '<span class="selected-badge">selected</span>' : ""}</td>
+        <td>${m.roc_auc.toFixed(4)}</td>
+        <td>${m.f1.toFixed(4)}</td>
+        <td>${pct(m.accuracy)}</td>
+        <td>${m.log_loss.toFixed(4)}</td>
+      </tr>
+    `;
+  }).join("");
+
+  const summary = state.metrics.summary;
+  const drift = state.drift;
+  const highDrift = drift.features.filter(f => Number(f.drift_score) >= 0.25).length;
+  const retrain = summary.auc_delta_from_validation <= -0.05 ||
+                  Number(drift.drift_score) >= 0.25 ||
+                  highDrift >= 2;
+  const status = retrain ? "RETRAIN" :
+    (summary.auc_delta_from_validation <= -0.03 || Number(drift.drift_score) >= 0.10 ? "WATCH" : "HEALTHY");
+
+  document.getElementById("retrainingPanel").innerHTML = `
+    <span class="retraining-status ${status.toLowerCase()}">${status}</span>
+    <div>
+      <strong>Retraining recommendation</strong>
+      <p>${retrain ? "Current monitoring signals cross the retraining policy." : "Continue monitoring; current signals do not cross the retraining threshold."}</p>
+    </div>
+  `;
 }
 
 function renderCharts() {
