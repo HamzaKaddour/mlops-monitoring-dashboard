@@ -7,6 +7,7 @@ features so the report has meaningful drift to inspect.
 Outputs:
 - data/evidently_drift_report.html
 - data/evidently_drift_summary.json
+- data/observability_summary.json
 """
 
 from __future__ import annotations
@@ -52,8 +53,51 @@ def main() -> None:
     payload = snapshot.dict()
     json_path.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
 
+    feature_scores = {}
+    drifted_count = 0
+    drifted_share = 0.0
+    for metric in payload.get("metrics", []):
+        config = metric.get("config", {})
+        metric_type = config.get("type", "")
+        if metric_type.endswith("DriftedColumnsCount"):
+            value = metric.get("value", {})
+            drifted_count = int(value.get("count", 0))
+            drifted_share = float(value.get("share", 0.0))
+        elif metric_type.endswith("ValueDrift"):
+            column = config.get("column")
+            if column:
+                feature_scores[column] = round(float(metric.get("value", 0.0)), 6)
+
+    observability = {
+        "evidently": {
+            "method": "PSI",
+            "threshold": 0.1,
+            "total_features": len(FEATURES),
+            "drifted_features": drifted_count,
+            "drifted_share": drifted_share,
+            "status": "drift_detected" if drifted_count else "stable",
+            "feature_scores": feature_scores,
+            "html_report": "data/evidently_drift_report.html",
+        },
+        "prometheus": {
+            "endpoint": "/prometheus-metrics",
+            "metrics": [
+                "mlops_prediction_requests_total",
+                "mlops_positive_predictions_total",
+                "mlops_last_prediction_probability",
+                "mlops_inference_latency_seconds",
+            ],
+        },
+    }
+    observability_path = DATA_DIR / "observability_summary.json"
+    observability_path.write_text(
+        json.dumps(observability, indent=2),
+        encoding="utf-8",
+    )
+
     print(f"Saved Evidently HTML report: {html_path}")
     print(f"Saved Evidently JSON summary: {json_path}")
+    print(f"Saved observability summary: {observability_path}")
 
 
 if __name__ == "__main__":
