@@ -168,9 +168,43 @@ Interactive OpenAPI documentation is available at:
 http://localhost:8000/docs
 ```
 
-## Docker
+## Native Ubuntu workflow
 
-Build and run the monitoring API:
+Docker is optional. The complete development workflow can run directly in a Python virtual environment:
+
+```bash
+source .venv/bin/activate
+python scripts/train_model.py
+python scripts/generate_mlops_artifacts.py
+python scripts/generate_evidently_report.py
+uvicorn api.app:app --reload --port 8000
+```
+
+In another terminal, serve the static dashboard:
+
+```bash
+python -m http.server 8080
+```
+
+The API is available at `http://127.0.0.1:8000`, the dashboard at `http://127.0.0.1:8080`, and MLflow can be launched separately with:
+
+```bash
+mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5001
+```
+
+Prometheus-format metrics are available without installing a Prometheus server:
+
+```bash
+curl http://127.0.0.1:8000/prometheus-metrics | grep mlops_
+```
+
+These counters are process-local and reset when the FastAPI process restarts unless an external Prometheus server persists them.
+
+## Optional Docker workflow
+
+Docker/Compose is included for reproducibility and for users who want a one-command API + Prometheus + Grafana stack. It is not required for the native workflow.
+
+Build and run only the monitoring API:
 
 ```bash
 docker build -t mlops-monitoring-dashboard .
@@ -266,7 +300,7 @@ The static frontend also reads `data/observability_summary.json` and shows the v
 
 ## Model monitoring signals
 
-The dashboard currently exposes:
+The dashboard currently exposes the real workstation training result alongside explicitly simulated monitoring windows. It includes:
 
 - ROC-AUC
 - F1 score
@@ -303,21 +337,11 @@ This provides a basic CI safety net around monitoring logic and API behavior.
 
 The repository uses a **deterministic synthetic binary-classification scenario** so the full monitoring workflow can be reproduced without proprietary data or external infrastructure.
 
-The monitoring architecture and PSI implementation are real; the example production observations are simulated. This separation keeps the repository reproducible while demonstrating how the same monitoring layer can be connected to real inference logs and production datasets.
+The training, model serving, SQLite prediction logging, Evidently analysis, Prometheus instrumentation, tests, and CI are implemented. The monitoring-window observations are deliberately simulated and labeled as such. This separation keeps the repository reproducible while demonstrating how the same monitoring layer can be connected to real inference logs and production datasets.
 
-## Production roadmap
+## Scope boundary
 
-Natural extensions include:
-
-- MLflow model registry promotion workflow
-- Prometheus alert rules and Alertmanager notifications
-- OpenTelemetry tracing
-- persistent prediction logging
-- scheduled drift jobs
-- model/version comparison
-- automated retraining triggers
-- cloud deployment on AWS
-- authentication and role-based dashboard access
+This repository is intentionally stopped at a complete local-first MLOps demonstration. Possible production extensions would include a managed model registry, persistent Prometheus/Grafana deployment, Alertmanager, scheduled monitoring jobs, authentication, and cloud infrastructure, but those are outside the current portfolio scope.
 
 ## Tech stack
 
