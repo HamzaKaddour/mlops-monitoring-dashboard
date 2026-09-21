@@ -13,6 +13,8 @@ The project now covers the full local lifecycle: **candidate training → MLflow
 - Rule-based retraining recommendation via `GET /retraining-status`
 - Model performance monitoring across training, validation, and production windows
 - Feature-level data-drift analysis
+- Evidently DataDriftPreset report generation for reference vs. current datasets
+- Prometheus-format inference counters, gauges, and latency histograms
 - Population Stability Index (PSI) utilities for numeric and categorical features
 - Prediction-distribution and confidence monitoring
 - Alert generation for production risk indicators
@@ -149,6 +151,8 @@ Useful endpoints:
 GET /health
 GET /training-summary
 POST /predict
+GET /prometheus-metrics
+GET /evidently-summary
 GET /prediction-events
 GET /retraining-status
 GET /metrics
@@ -206,6 +210,37 @@ PSI >= 0.25         alert
 
 The utilities are intentionally kept separate from the UI so they can be reused in batch jobs, APIs, scheduled monitoring workflows, or future integrations with production data stores.
 
+## Evidently and Prometheus observability
+
+Generate the Evidently drift report locally:
+
+```bash
+python scripts/generate_evidently_report.py
+```
+
+This writes:
+
+```text
+data/evidently_drift_report.html
+data/evidently_drift_summary.json
+```
+
+The report compares deterministic reference data against a controlled shifted monitoring window using Evidently's `DataDriftPreset` with PSI.
+
+With the FastAPI service running, inspect the structured report at:
+
+```text
+GET /evidently-summary
+```
+
+Prometheus instrumentation is emitted at:
+
+```text
+GET /prometheus-metrics
+```
+
+The current metrics include total prediction requests, total positive predictions, the most recent prediction probability, and an inference-latency histogram. The endpoint is compatible with a Prometheus scraper without requiring a Prometheus server for local development.
+
 ## Model monitoring signals
 
 The dashboard currently exposes:
@@ -252,8 +287,7 @@ The monitoring architecture and PSI implementation are real; the example product
 Natural extensions include:
 
 - MLflow model registry promotion workflow
-- Evidently monitoring reports
-- Prometheus metrics and alerting
+- Prometheus server/Grafana visualization and alert rules
 - OpenTelemetry tracing
 - persistent prediction logging
 - scheduled drift jobs
@@ -264,4 +298,4 @@ Natural extensions include:
 
 ## Tech stack
 
-`Python` · `FastAPI` · `NumPy` · `Pandas` · `scikit-learn` · `MLflow` · `SQLite` · `joblib` · `pytest` · `Docker` · `GitHub Actions` · `HTML/CSS/JavaScript` · `MLOps` · `Model Monitoring` · `Data Drift`
+`Python` · `FastAPI` · `NumPy` · `Pandas` · `scikit-learn` · `MLflow` · `Evidently` · `Prometheus` · `SQLite` · `joblib` · `pytest` · `Docker` · `GitHub Actions` · `HTML/CSS/JavaScript` · `MLOps` · `Model Monitoring` · `Data Drift`
