@@ -52,15 +52,12 @@ body {
   padding-bottom: 1.1rem;
   border-bottom: 1px solid rgba(255,255,255,.12);
 }
-.brand-icon {
+.brand-logo {
   width: 42px;
   height: 42px;
+  flex: 0 0 auto;
   border-radius: 14px;
-  display: grid;
-  place-items: center;
-  color: white;
-  font-weight: 950;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 8px 22px rgba(37,99,235,.24);
 }
 .brand-block strong { display: block; font-size: .98rem; }
 .brand-block span { display: block; color: #94a3b8; font-size: .78rem; margin-top: .12rem; }
@@ -509,4 +506,32 @@ p { margin: 0; color: var(--muted); line-height: 1.6; }
 @media (max-width: 640px) {
   .obs-kpis { grid-template-columns: 1fr; }
   .feature-row { grid-template-columns: 1fr; }
+}
+
+
+.hero-brand {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+.hero-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  box-shadow: 0 10px 26px rgba(37,99,235,.22);
+}
+.hero-product {
+  display: block;
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 950;
+  letter-spacing: -.02em;
+}
+.hero-subtitle {
+  display: block;
+  margin-top: .12rem;
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 700;
 }
