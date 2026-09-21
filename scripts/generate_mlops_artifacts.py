@@ -1,20 +1,21 @@
-"""Generate lightweight MLOps monitoring artifacts.
+"""Generate reproducible monitoring artifacts for the selected churn model.
 
-The script simulates a binary classification monitoring workflow and writes JSON
-artifacts consumed by the static dashboard. It uses only the Python standard
-library so it can run quickly in GitHub Actions without dependency installation.
+The trained model and held-out metrics come from artifacts/training_summary.json.
+The production-like monitoring windows are intentionally simulated so the
+repository can demonstrate drift, performance degradation, alerts, and
+retraining logic without proprietary production data.
 """
 
 from __future__ import annotations
 
 import json
-import math
 import random
 from datetime import date, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "data"
+TRAINING_SUMMARY = ROOT / "artifacts" / "training_summary.json"
 RNG = random.Random(7)
 
 
@@ -23,125 +24,144 @@ def write_json(path: Path, payload: object) -> None:
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
-def clip(value: float, low: float = 0.01, high: float = 0.99) -> float:
-    return max(low, min(high, value))
+def load_training_summary() -> dict:
+    if not TRAINING_SUMMARY.exists():
+        raise FileNotFoundError(
+            "Training summary is missing. Run: python scripts/train_model.py"
+        )
+    return json.loads(TRAINING_SUMMARY.read_text(encoding="utf-8"))
 
 
-def simulate_window(n: int, quality: float, positive_rate: float) -> tuple[list[int], list[float]]:
-    y_true = [1 if RNG.random() < positive_rate else 0 for _ in range(n)]
-    probs = []
-    for label in y_true:
-        center = quality if label == 1 else 1 - quality
-        probs.append(clip(center + RNG.gauss(0, 0.13)))
-    return y_true, probs
+def bounded(value: float) -> float:
+    return round(max(0.0, min(1.0, value)), 4)
 
 
-def auc_score(y_true: list[int], probs: list[float]) -> float:
-    pairs = sorted(zip(probs, y_true), key=lambda item: item[0])
-    pos = sum(y_true)
-    neg = len(y_true) - pos
-    if pos == 0 or neg == 0:
-        return 0.5
-    rank_sum = 0.0
-    for rank, (_, label) in enumerate(pairs, start=1):
-        if label == 1:
-            rank_sum += rank
-    return (rank_sum - pos * (pos + 1) / 2) / (pos * neg)
+def build_model_metrics(training: dict) -> dict:
+    test = training["test_metrics"]
+    validation_auc = float(training["validation_roc_auc"])
 
-
-def classification_metrics(y_true: list[int], probs: list[float]) -> dict:
-    y_pred = [1 if p >= 0.5 else 0 for p in probs]
-    tp = sum(1 for yt, yp in zip(y_true, y_pred) if yt == 1 and yp == 1)
-    tn = sum(1 for yt, yp in zip(y_true, y_pred) if yt == 0 and yp == 0)
-    fp = sum(1 for yt, yp in zip(y_true, y_pred) if yt == 0 and yp == 1)
-    fn = sum(1 for yt, yp in zip(y_true, y_pred) if yt == 1 and yp == 0)
-
-    precision = tp / (tp + fp) if tp + fp else 0.0
-    recall = tp / (tp + fn) if tp + fn else 0.0
-    f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
-    accuracy = (tp + tn) / len(y_true)
-    loss = -sum(
-        yt * math.log(clip(p)) + (1 - yt) * math.log(clip(1 - p))
-        for yt, p in zip(y_true, probs)
-    ) / len(y_true)
-
-    return {
-        "auc": round(auc_score(y_true, probs), 3),
-        "f1": round(f1, 3),
-        "accuracy": round(accuracy, 3),
-        "precision": round(precision, 3),
-        "recall": round(recall, 3),
-        "log_loss": round(loss, 3),
+    # Synthetic monitoring windows derived from the real held-out result.
+    validation = {
+        "window": "validation",
+        "auc": round(validation_auc, 4),
+        "f1": round(float(training["candidate_runs"][0]["validation_metrics"]["f1"]), 4),
+        "accuracy": round(float(training["candidate_runs"][0]["validation_metrics"]["accuracy"]), 4),
+        "precision": round(float(training["candidate_runs"][0]["validation_metrics"]["precision"]), 4),
+        "recall": round(float(training["candidate_runs"][0]["validation_metrics"]["recall"]), 4),
+        "log_loss": round(float(training["candidate_runs"][0]["validation_metrics"]["log_loss"]), 4),
+    }
+    test_window = {
+        "window": "held_out_test",
+        "auc": round(float(test["roc_auc"]), 4),
+        "f1": round(float(test["f1"]), 4),
+        "accuracy": round(float(test["accuracy"]), 4),
+        "precision": round(float(test["precision"]), 4),
+        "recall": round(float(test["recall"]), 4),
+        "log_loss": round(float(test["log_loss"]), 4),
     }
 
+    prod7 = {
+        "window": "simulated_monitoring_7d",
+        "auc": bounded(float(test["roc_auc"]) - 0.034),
+        "f1": bounded(float(test["f1"]) - 0.031),
+        "accuracy": bounded(float(test["accuracy"]) - 0.018),
+        "precision": bounded(float(test["precision"]) - 0.024),
+        "recall": bounded(float(test["recall"]) - 0.029),
+        "log_loss": round(float(test["log_loss"]) + 0.041, 4),
+    }
+    prod30 = {
+        "window": "simulated_monitoring_30d",
+        "auc": bounded(float(test["roc_auc"]) - 0.025),
+        "f1": bounded(float(test["f1"]) - 0.022),
+        "accuracy": bounded(float(test["accuracy"]) - 0.012),
+        "precision": bounded(float(test["precision"]) - 0.017),
+        "recall": bounded(float(test["recall"]) - 0.021),
+        "log_loss": round(float(test["log_loss"]) + 0.030, 4),
+    }
 
-def metrics_for_window(name: str, n: int, quality: float, positive_rate: float) -> dict:
-    y_true, probs = simulate_window(n, quality, positive_rate)
-    return {"window": name, **classification_metrics(y_true, probs)}
-
-
-def build_model_metrics() -> dict:
-    windows = [
-        metrics_for_window("training", 5000, 0.86, 0.20),
-        metrics_for_window("validation", 2200, 0.84, 0.21),
-        metrics_for_window("production_7d", 2400, 0.80, 0.23),
-        metrics_for_window("production_30d", 7000, 0.81, 0.22),
-    ]
-    validation = next(item for item in windows if item["window"] == "validation")
-    prod = next(item for item in windows if item["window"] == "production_7d")
-    auc_delta = round(prod["auc"] - validation["auc"], 3)
+    auc_delta = round(prod7["auc"] - validation["auc"], 4)
 
     return {
         "generated_at": f"{date.today().isoformat()}T00:00:00Z",
-        "model_name": "Customer Churn Risk Classifier",
-        "model_version": "v1.3.0",
+        "model_name": training["model_name"],
+        "model_version": training["model_version"],
+        "selected_candidate": training["selected_candidate"],
         "problem_type": "binary_classification",
-        "target": "churn_within_30_days",
+        "target": training["dataset"]["target"],
+        "data_scope": "synthetic monitoring demonstration",
         "summary": {
-            "health_status": "watch" if abs(auc_delta) > 0.03 else "ok",
-            "current_auc": prod["auc"],
-            "current_f1": prod["f1"],
-            "current_accuracy": prod["accuracy"],
+            "health_status": "watch" if auc_delta <= -0.03 else "ok",
+            "current_auc": prod7["auc"],
+            "current_f1": prod7["f1"],
+            "current_accuracy": prod7["accuracy"],
             "auc_delta_from_validation": auc_delta,
             "predictions_last_7_days": 28420,
-            "retraining_recommended": auc_delta < -0.05,
+            "retraining_recommended": auc_delta <= -0.05,
         },
-        "windows": windows,
+        "windows": [validation, test_window, prod7, prod30],
         "experiments": [
-            {"run_id": "exp_lr_001", "model": "Logistic Regression", "auc": 0.842, "f1": 0.693, "latency_ms": 12},
-            {"run_id": "exp_rf_014", "model": "Random Forest", "auc": 0.887, "f1": 0.756, "latency_ms": 42},
-            {"run_id": "exp_xgb_021", "model": "Gradient Boosted Trees", "auc": validation["auc"], "f1": validation["f1"], "latency_ms": 31},
-            {"run_id": "exp_nn_006", "model": "Small Neural Network", "auc": 0.899, "f1": 0.769, "latency_ms": 55},
+            {
+                "run_id": run["run_id"],
+                "model": run["candidate"],
+                "auc": run["validation_metrics"]["roc_auc"],
+                "f1": run["validation_metrics"]["f1"],
+            }
+            for run in training["candidate_runs"]
         ],
     }
 
 
 def build_drift_report() -> dict:
     features = [
-        ("monthly_charges", "numeric", 0.271, "higher than baseline"),
-        ("contract_type", "categorical", 0.238, "more month-to-month contracts"),
-        ("support_tickets_30d", "numeric", 0.221, "higher than baseline"),
-        ("tenure_months", "numeric", 0.176, "slightly lower than baseline"),
-        ("payment_method", "categorical", 0.141, "minor category shift"),
-        ("internet_service", "categorical", 0.094, "within baseline range"),
+        ("monthly_charges", "numeric", 0.151068, "higher than reference"),
+        ("contract_type", "categorical", 0.147821, "more month-to-month contracts"),
+        ("support_tickets_30d", "numeric", 1.879992, "higher than reference"),
+        ("tenure_months", "numeric", 0.011946, "within reference range"),
+        ("payment_method", "categorical", 0.000615, "within reference range"),
+        ("internet_service", "categorical", 0.001788, "within reference range"),
     ]
     feature_rows = []
     for name, typ, score, direction in features:
-        status = "watch" if score >= 0.2 else "stable"
-        feature_rows.append({"feature": name, "type": typ, "drift_score": score, "status": status, "direction": direction})
+        status = "alert" if score >= 0.25 else "watch" if score >= 0.10 else "stable"
+        feature_rows.append(
+            {
+                "feature": name,
+                "type": typ,
+                "drift_score": score,
+                "status": status,
+                "direction": direction,
+            }
+        )
+
     drift_score = sum(row["drift_score"] for row in feature_rows) / len(feature_rows)
     return {
-        "reference_window": "validation",
-        "current_window": "production_7d",
+        "reference_window": "synthetic_reference",
+        "current_window": "synthetic_shifted_current",
         "overall_drift_status": "watch",
-        "drift_score": round(drift_score, 3),
-        "thresholds": {"low": 0.1, "medium": 0.2, "high": 0.35},
+        "drift_score": round(drift_score, 4),
+        "thresholds": {"stable": 0.10, "watch": 0.25},
         "features": feature_rows,
         "alerts": [
-            {"name": "AUC degradation", "severity": "watch", "message": "Production AUC is below validation AUC. Monitor for sustained decline."},
-            {"name": "Feature drift", "severity": "watch", "message": "Three features exceed the medium drift threshold."},
-            {"name": "Prediction volume", "severity": "ok", "message": "Prediction volume is within the expected range."},
-            {"name": "Confidence distribution", "severity": "ok", "message": "Average confidence remains stable relative to the previous production window."},
+            {
+                "name": "AUC degradation",
+                "severity": "watch",
+                "message": "The simulated 7-day monitoring AUC is below validation AUC.",
+            },
+            {
+                "name": "Feature drift",
+                "severity": "watch",
+                "message": "Evidently flags three of six monitored features as drifted.",
+            },
+            {
+                "name": "Prediction volume",
+                "severity": "ok",
+                "message": "Simulated prediction volume remains within the configured demonstration range.",
+            },
+            {
+                "name": "Inference telemetry",
+                "severity": "ok",
+                "message": "Prometheus instrumentation is available from the serving API.",
+            },
         ],
     }
 
@@ -151,14 +171,17 @@ def build_prediction_logs() -> dict:
     daily = []
     for idx in range(14):
         day = start + timedelta(days=idx)
-        daily.append({
-            "date": day.isoformat(),
-            "predictions": int(3900 + idx * 25 + RNG.gauss(0, 120)),
-            "positive_rate": round(0.19 + idx * 0.003 + RNG.gauss(0, 0.008), 3),
-            "avg_confidence": round(0.812 - idx * 0.0015 + RNG.gauss(0, 0.004), 3),
-        })
+        daily.append(
+            {
+                "date": day.isoformat(),
+                "predictions": int(3900 + idx * 25 + RNG.gauss(0, 120)),
+                "positive_rate": round(0.19 + idx * 0.003 + RNG.gauss(0, 0.008), 3),
+                "avg_confidence": round(0.812 - idx * 0.0015 + RNG.gauss(0, 0.004), 3),
+            }
+        )
     return {
-        "window": "last_14_days",
+        "window": "simulated_last_14_days",
+        "scope": "synthetic monitoring demonstration",
         "daily": daily,
         "segments": [
             {"segment": "new_customers", "volume": 8120, "positive_rate": 0.281, "avg_confidence": 0.775},
@@ -169,36 +192,48 @@ def build_prediction_logs() -> dict:
     }
 
 
-def build_model_card() -> dict:
+def build_model_card(training: dict) -> dict:
     return {
-        "model_name": "Customer Churn Risk Classifier",
-        "version": "v1.3.0",
-        "owner": "ML Platform Team",
+        "model_name": training["model_name"],
+        "version": training["model_version"],
+        "owner": "Portfolio demonstration",
         "last_updated": date.today().isoformat(),
-        "intended_use": "Prioritize customer retention outreach by estimating the probability that an active customer may churn within 30 days.",
-        "model_type": "Gradient Boosted Trees",
-        "training_data": "Historical customer account, billing, support, and contract records with labels derived from 30-day churn outcomes.",
-        "input_features": ["tenure_months", "monthly_charges", "contract_type", "support_tickets_30d", "payment_method", "internet_service"],
+        "intended_use": (
+            "Demonstrate an end-to-end MLOps lifecycle using a churn-risk classifier, "
+            "including experiment tracking, serving, monitoring, and retraining signals."
+        ),
+        "model_type": "Logistic Regression",
+        "training_data": (
+            "Deterministic synthetic churn dataset with 6,000 rows; "
+            "3,600 train, 1,200 validation, and 1,200 held-out test rows."
+        ),
+        "input_features": training["dataset"]["features"],
         "limitations": [
-            "Predictions should support retention prioritization, not automated denial of service.",
-            "Performance may degrade when pricing, support operations, or customer acquisition channels change.",
-            "Segments with low historical volume require additional review before operational decisions.",
+            "The dataset and monitoring windows are synthetic and are not evidence of real-world production performance.",
+            "The repository demonstrates MLOps system behavior rather than a domain-validated churn model.",
+            "Prometheus counters reset when the local API process restarts unless an external Prometheus server persists them.",
         ],
         "monitoring_requirements": [
-            "Track AUC, F1, precision, recall, and log loss by production window.",
-            "Monitor feature drift for billing, contract, and support-ticket features.",
-            "Review prediction distribution shifts weekly.",
-            "Trigger retraining review if AUC drops by more than 0.05 or if overall drift score exceeds 0.25.",
+            "Track ROC-AUC, F1, precision, recall, and log loss across validation and monitoring windows.",
+            "Run Evidently feature-drift checks against the reference distribution.",
+            "Scrape inference counters, probability gauges, and latency histograms from Prometheus metrics.",
+            "Review retraining when AUC falls by at least 0.05 or PSI drift crosses configured thresholds.",
         ],
-        "deployment": {"environment": "batch scoring", "cadence": "daily", "latency_target_ms": 75, "current_p95_latency_ms": 48},
+        "deployment": {
+            "environment": "local FastAPI demo",
+            "cadence": "on demand",
+            "latency_target_ms": None,
+            "current_p95_latency_ms": None,
+        },
     }
 
 
 def main() -> None:
-    write_json(DATA_DIR / "model_metrics.json", build_model_metrics())
+    training = load_training_summary()
+    write_json(DATA_DIR / "model_metrics.json", build_model_metrics(training))
     write_json(DATA_DIR / "drift_report.json", build_drift_report())
     write_json(DATA_DIR / "prediction_logs.json", build_prediction_logs())
-    write_json(DATA_DIR / "model_card.json", build_model_card())
+    write_json(DATA_DIR / "model_card.json", build_model_card(training))
     print(f"Wrote MLOps artifacts to {DATA_DIR}")
 
 
