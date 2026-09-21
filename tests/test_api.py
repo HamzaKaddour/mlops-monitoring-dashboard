@@ -87,3 +87,14 @@ def test_observability_summary_endpoint():
     assert payload["evidently"]["drifted_features"] == 3
     assert payload["evidently"]["total_features"] == 6
     assert payload["prometheus"]["endpoint"] == "/prometheus-metrics"
+
+
+def test_model_metadata_matches_training_summary():
+    training = client.get("/training-summary").json()
+    metrics = client.get("/metrics").json()
+    card = client.get("/model-card").json()
+
+    assert metrics["model_version"] == training["model_version"]
+    assert metrics["selected_candidate"] == training["selected_candidate"]
+    assert card["version"] == training["model_version"]
+    assert card["model_type"] == "Logistic Regression"
