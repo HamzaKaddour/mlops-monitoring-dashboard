@@ -71,3 +71,10 @@ def test_prometheus_metrics_endpoint():
     assert response.status_code == 200
     assert "mlops_prediction_requests_total" in response.text
     assert "mlops_inference_latency_seconds" in response.text
+
+
+def test_evidently_summary_endpoint():
+    response = client.get("/evidently-summary")
+    assert response.status_code == 200
+    payload = response.json()
+    assert "metrics" in payload
