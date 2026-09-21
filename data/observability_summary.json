@@ -1,0 +1,34 @@
+{
+  "evidently": {
+    "method": "PSI",
+    "threshold": 0.1,
+    "total_features": 6,
+    "drifted_features": 3,
+    "drifted_share": 0.5,
+    "status": "drift_detected",
+    "feature_scores": {
+      "tenure_months": 0.011946,
+      "monthly_charges": 0.151068,
+      "support_tickets_30d": 1.879992,
+      "contract_type": 0.147821,
+      "payment_method": 0.000615,
+      "internet_service": 0.001788
+    },
+    "html_report": "data/evidently_drift_report.html"
+  },
+  "prometheus": {
+    "endpoint": "/prometheus-metrics",
+    "metrics": [
+      "mlops_prediction_requests_total",
+      "mlops_positive_predictions_total",
+      "mlops_last_prediction_probability",
+      "mlops_inference_latency_seconds"
+    ],
+    "verified_example": {
+      "prediction_requests_total": 1,
+      "positive_predictions_total": 1,
+      "last_prediction_probability": 0.881207,
+      "inference_latency_seconds": 0.685691
+    }
+  }
+}
