@@ -1,0 +1,43 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Prediction Requests",
+      "targets": [{"expr": "mlops_prediction_requests_total", "legendFormat": "requests", "refId": "A"}],
+      "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0}
+    },
+    {
+      "type": "stat",
+      "title": "Positive Predictions",
+      "targets": [{"expr": "mlops_positive_predictions_total", "legendFormat": "positive", "refId": "A"}],
+      "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0}
+    },
+    {
+      "type": "stat",
+      "title": "Last Churn Probability",
+      "targets": [{"expr": "mlops_last_prediction_probability", "legendFormat": "probability", "refId": "A"}],
+      "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0}
+    },
+    {
+      "type": "timeseries",
+      "title": "Inference Latency p95",
+      "targets": [{
+        "expr": "histogram_quantile(0.95, sum(rate(mlops_inference_latency_seconds_bucket[5m])) by (le))",
+        "legendFormat": "p95",
+        "refId": "A"
+      }],
+      "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0}
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "tags": ["mlops", "monitoring"],
+  "templating": {"list": []},
+  "time": {"from": "now-15m", "to": "now"},
+  "timezone": "browser",
+  "title": "MLOps Inference Observability",
+  "uid": "mlops-observability",
+  "version": 1
+}
