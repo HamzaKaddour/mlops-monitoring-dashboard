@@ -1,8 +1,28 @@
 # MLOps Monitoring Dashboard
 
+[**Live Dashboard → hamzakaddour.github.io/mlops-monitoring-dashboard**](https://hamzakaddour.github.io/mlops-monitoring-dashboard/)
+
+> Local-first MLOps portfolio project covering experiment tracking, model selection, API serving, prediction logging, drift detection, observability, and retraining signals.
+
 A production-style machine learning monitoring project that tracks **model performance, data drift, prediction behavior, operational risk, and model-card metadata** through a reproducible Python pipeline, interactive dashboard, and FastAPI service.
 
 The project now covers the full local lifecycle: **candidate training → MLflow experiment tracking → model selection → saved-model inference → prediction logging → drift/performance monitoring → retraining recommendation**. The public dashboard also surfaces the committed workstation training summary so model-selection results and monitoring behavior can be inspected together.
+
+## At a glance
+
+| Component | Implementation |
+| --- | --- |
+| Training | scikit-learn candidate comparison on a deterministic synthetic churn dataset |
+| Experiment tracking | MLflow with local SQLite backend |
+| Serving | FastAPI `POST /predict` |
+| Prediction logging | SQLite event store |
+| Drift monitoring | Evidently + PSI |
+| Runtime telemetry | Prometheus-format counters, gauges, and latency histograms |
+| Visualization | Static dashboard + optional Grafana stack |
+| Governance | Structured model card + retraining policy |
+| Validation | pytest + GitHub Actions CI |
+
+**Verified workstation result:** Logistic Regression selected by validation ROC-AUC; validation ROC-AUC **0.7443**, held-out test ROC-AUC **0.7487**, held-out test F1 **0.5329**.
 
 ## What this project demonstrates
 
@@ -24,6 +44,15 @@ The project now covers the full local lifecycle: **candidate training → MLflow
 - Automated tests with `pytest`
 - GitHub Actions CI on pushes and pull requests
 - Static monitoring dashboard suitable for GitHub Pages
+
+## Quick links
+
+- [Live dashboard](https://hamzakaddour.github.io/mlops-monitoring-dashboard/)
+- [FastAPI endpoints](#run-the-monitoring-api)
+- [Published workstation result](#published-workstation-result)
+- [Evidently and Prometheus observability](#evidently-and-prometheus-observability)
+- [Native Ubuntu workflow](#native-ubuntu-workflow)
+- [Optional Docker workflow](#optional-docker-workflow)
 
 ## Architecture
 
