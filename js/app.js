@@ -1,4 +1,4 @@
-const state = { metrics: null, drift: null, predictions: null, modelCard: null, training: null };
+const state = { metrics: null, drift: null, predictions: null, modelCard: null, training: null, observability: null };
 
 const baseLayout = {
   paper_bgcolor: "rgba(0,0,0,0)",
@@ -11,24 +11,27 @@ const baseLayout = {
 };
 
 async function loadData() {
-  const [metricsRes, driftRes, predictionsRes, cardRes, trainingRes] = await Promise.all([
+  const [metricsRes, driftRes, predictionsRes, cardRes, trainingRes, observabilityRes] = await Promise.all([
     fetch("data/model_metrics.json"),
     fetch("data/drift_report.json"),
     fetch("data/prediction_logs.json"),
     fetch("data/model_card.json"),
-    fetch("artifacts/training_summary.json")
+    fetch("artifacts/training_summary.json"),
+    fetch("data/observability_summary.json")
   ]);
   state.metrics = await metricsRes.json();
   state.drift = await driftRes.json();
   state.predictions = await predictionsRes.json();
   state.modelCard = await cardRes.json();
   state.training = await trainingRes.json();
+  state.observability = await observabilityRes.json();
 
   renderSidebar();
   renderSummary();
   renderTraining();
   renderCharts();
   renderAlerts();
+  renderObservability();
   renderModelCard();
 }
 
@@ -154,6 +157,58 @@ function renderAlerts() {
     const cls = alert.severity === "ok" ? "alert-ok" : alert.severity === "critical" ? "alert-critical" : "alert-watch";
     return `<article class="alert-item"><div><strong>${alert.name}</strong><span>${alert.message}</span></div><span class="alert-badge ${cls}">${alert.severity.toUpperCase()}</span></article>`;
   }).join("");
+}
+
+
+function renderObservability() {
+  const obs = state.observability;
+  if (!obs) return;
+
+  const ev = obs.evidently;
+  const statusEl = document.getElementById("evidentlyStatus");
+  statusEl.textContent = ev.status === "drift_detected" ? "DRIFT DETECTED" : "STABLE";
+  statusEl.className = "status-chip " + (ev.status === "drift_detected" ? "watch" : "stable");
+
+  document.getElementById("evidentlyKpis").innerHTML = [
+    ["Drifted features", ev.drifted_features, `of ${ev.total_features}`],
+    ["Drift share", pct(ev.drifted_share), `PSI threshold ${ev.threshold}`],
+    ["Method", ev.method, "Evidently DataDriftPreset"]
+  ].map(([label, value, note]) => `
+    <div class="obs-kpi">
+      <span>${label}</span>
+      <strong>${value}</strong>
+      <small>${note}</small>
+    </div>
+  `).join("");
+
+  const sorted = Object.entries(ev.feature_scores).sort((a, b) => b[1] - a[1]);
+  document.getElementById("evidentlyFeatureList").innerHTML = sorted.map(([name, score]) => {
+    const drifted = score >= ev.threshold;
+    return `
+      <div class="feature-row">
+        <span>${prettyName(name)}</span>
+        <div class="feature-score-wrap">
+          <div class="feature-bar"><i style="width:${Math.min(100, score / Math.max(ev.threshold, 0.001) * 35)}%"></i></div>
+          <strong class="${drifted ? "score-alert" : ""}">${score.toFixed(3)}</strong>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  const prom = obs.prometheus;
+  const example = prom.verified_example || {};
+  const rows = [
+    ["Prediction requests", example.prediction_requests_total ?? "—", "mlops_prediction_requests_total"],
+    ["Positive predictions", example.positive_predictions_total ?? "—", "mlops_positive_predictions_total"],
+    ["Last probability", example.last_prediction_probability != null ? example.last_prediction_probability.toFixed(6) : "—", "mlops_last_prediction_probability"],
+    ["Observed latency", example.inference_latency_seconds != null ? example.inference_latency_seconds.toFixed(3) + " s" : "—", "mlops_inference_latency_seconds"]
+  ];
+  document.getElementById("prometheusMetrics").innerHTML = rows.map(([label, value, metric]) => `
+    <div class="metric-row">
+      <div><strong>${label}</strong><code>${metric}</code></div>
+      <span>${value}</span>
+    </div>
+  `).join("");
 }
 
 function renderModelCard() {
