@@ -78,3 +78,12 @@ def test_evidently_summary_endpoint():
     assert response.status_code == 200
     payload = response.json()
     assert "metrics" in payload
+
+
+def test_observability_summary_endpoint():
+    response = client.get("/observability-summary")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["evidently"]["drifted_features"] == 3
+    assert payload["evidently"]["total_features"] == 6
+    assert payload["prometheus"]["endpoint"] == "/prometheus-metrics"
