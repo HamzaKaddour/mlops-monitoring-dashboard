@@ -3,14 +3,23 @@
 from __future__ import annotations
 
 import json
+from time import perf_counter
 from pathlib import Path
 from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from mlops_monitoring.inference import predict_one
 from mlops_monitoring.prediction_store import log_prediction, recent_predictions
+from mlops_monitoring.prometheus_metrics import (
+    INFERENCE_LATENCY,
+    POSITIVE_PREDICTIONS,
+    PREDICTION_PROBABILITY,
+    PREDICTION_REQUESTS,
+)
 from mlops_monitoring.retraining import recommend_retraining
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,10 +56,18 @@ def health() -> dict[str, str]:
 
 @app.post("/predict")
 def predict(request: PredictionRequest) -> dict[str, Any]:
+    PREDICTION_REQUESTS.inc()
+    started = perf_counter()
     try:
         result = predict_one(request.model_dump())
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
+    finally:
+        INFERENCE_LATENCY.observe(perf_counter() - started)
+
+    PREDICTION_PROBABILITY.set(result["churn_probability"])
+    if result["prediction"] == 1:
+        POSITIVE_PREDICTIONS.inc()
 
     log_prediction(
         features=request.model_dump(),
@@ -69,6 +86,11 @@ def prediction_events(limit: int = Query(default=20, ge=1, le=200)) -> dict[str,
 @app.get("/training-summary")
 def training_summary() -> dict[str, Any]:
     return load_json("training_summary.json", ARTIFACT_DIR)
+
+
+@app.get("/prometheus-metrics")
+def prometheus_metrics() -> Response:
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 @app.get("/metrics")
