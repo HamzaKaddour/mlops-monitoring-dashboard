@@ -153,6 +153,7 @@ GET /training-summary
 POST /predict
 GET /prometheus-metrics
 GET /evidently-summary
+GET /observability-summary
 GET /prediction-events
 GET /retraining-status
 GET /metrics
@@ -241,6 +242,28 @@ GET /prometheus-metrics
 
 The current metrics include total prediction requests, total positive predictions, the most recent prediction probability, and an inference-latency histogram. The endpoint is compatible with a Prometheus scraper without requiring a Prometheus server for local development.
 
+## Full local observability stack
+
+A Docker Compose stack is included for the serving API, Prometheus, and Grafana:
+
+```bash
+docker compose up --build
+```
+
+Services:
+
+```text
+FastAPI      http://127.0.0.1:8000
+Prometheus   http://127.0.0.1:9090
+Grafana      http://127.0.0.1:3000
+```
+
+Grafana is provisioned automatically with Prometheus as its datasource and includes the **MLOps Inference Observability** dashboard. The dashboard shows prediction requests, positive predictions, last churn probability, and p95 inference latency.
+
+The API container trains the deterministic model and generates its monitoring artifacts at image-build time, so `POST /predict` works without copying workstation-only model files into the repository.
+
+The static frontend also reads `data/observability_summary.json` and shows the verified Evidently drift result alongside the Prometheus instrumentation.
+
 ## Model monitoring signals
 
 The dashboard currently exposes:
@@ -287,7 +310,7 @@ The monitoring architecture and PSI implementation are real; the example product
 Natural extensions include:
 
 - MLflow model registry promotion workflow
-- Prometheus server/Grafana visualization and alert rules
+- Prometheus alert rules and Alertmanager notifications
 - OpenTelemetry tracing
 - persistent prediction logging
 - scheduled drift jobs
