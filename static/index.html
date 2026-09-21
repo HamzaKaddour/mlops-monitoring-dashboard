@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MLOps Monitoring Console</title>
+  <meta name="description" content="MLOps monitoring console for model performance, data drift, prediction monitoring, alerts, and model-card reporting." />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <script defer src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <script defer src="js/app.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand-block">
+        <div class="brand-icon">M</div>
+        <div>
+          <strong>MLOps Console</strong>
+          <span>Model Reliability</span>
+        </div>
+      </div>
+
+      <nav class="side-nav" aria-label="Dashboard navigation">
+        <a href="#overview" class="active">Overview</a>
+        <a href="#training">Training</a>
+        <a href="#quality">Model Quality</a>
+        <a href="#drift">Data Drift</a>
+        <a href="#predictions">Predictions</a>
+        <a href="#alerts">Alerts</a>
+        <a href="#observability">Observability</a>
+        <a href="#model-card-section">Model Card</a>
+      </nav>
+
+      <div class="sidebar-card">
+        <span class="tiny-label">Current model</span>
+        <strong id="sidebarModelName">Loading...</strong>
+        <small id="sidebarModelVersion">Version pending</small>
+      </div>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <div>
+          <p class="crumb">Local demo / Churn Risk / Monitoring</p>
+          <h1>MLOps Monitoring Console</h1>
+        </div>
+        <div class="topbar-actions">
+          <span class="env-pill">Synthetic monitoring</span>
+          <span class="sync-pill"><span></span> Artifacts loaded</span>
+        </div>
+      </header>
+
+      <main>
+        <section id="overview" class="overview-panel">
+          <div class="overview-copy">
+            <div class="hero-brand"><div><span class="hero-product">MLOps Console</span><span class="hero-subtitle">Local-first model lifecycle monitoring</span></div></div>
+            <span class="section-kicker">Lifecycle observability</span>
+            <h2>Inspect training, serving, drift, telemetry, and retraining signals in one reproducible MLOps workflow.</h2>
+            <p>This console combines a real local training/inference workflow with explicitly simulated monitoring windows so the MLOps behavior can be reproduced without proprietary production data.</p>
+          </div>
+          <div class="ops-flow">
+            <div><span>01</span> Train</div>
+            <div><span>02</span> Validate</div>
+            <div><span>03</span> Score</div>
+            <div><span>04</span> Monitor</div>
+            <div><span>05</span> Review</div>
+          </div>
+        </section>
+
+        <section class="kpi-strip" id="summaryGrid"></section>
+
+        <section class="method-board">
+          <article><span>Performance windows</span><p>Validation, held-out test, and simulated monitoring windows are compared side by side.</p></article>
+          <article><span>Feature drift</span><p>Feature-level drift scores show which current inputs shifted away from the synthetic reference baseline.</p></article>
+          <article><span>Prediction behavior</span><p>Synthetic daily scoring volume, positive rate, and confidence illustrate distribution monitoring.</p></article>
+          <article><span>Alerting</span><p>Risk indicators summarize performance degradation, drift, volume, and confidence stability.</p></article>
+        </section>
+
+
+        <section class="console-card training-card" id="training">
+          <div class="card-title-row">
+            <div>
+              <span class="section-kicker">Workstation training result</span>
+              <h2>Model selection and held-out test performance</h2>
+              <p>The training pipeline compares multiple scikit-learn candidates with MLflow tracking, selects by validation ROC-AUC, and evaluates the selected model once on a held-out test set.</p>
+            </div>
+            <span class="metric-tag" id="trainingGeneratedAt">Loading result</span>
+          </div>
+          <div class="training-kpis" id="trainingKpis"></div>
+          <div class="training-grid">
+            <div>
+              <h3>Candidate comparison</h3>
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>Candidate</th><th>Val ROC-AUC</th><th>Val F1</th><th>Accuracy</th><th>Log loss</th></tr>
+                  </thead>
+                  <tbody id="candidateTable"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="lifecycle-panel">
+              <h3>Lifecycle implemented in this repository</h3>
+              <ol>
+                <li><strong>Train:</strong> three candidate classifiers on deterministic synthetic churn data.</li>
+                <li><strong>Track:</strong> MLflow records parameters and validation metrics in local SQLite.</li>
+                <li><strong>Select:</strong> choose the best candidate by validation ROC-AUC.</li>
+                <li><strong>Serve:</strong> FastAPI loads the selected joblib artifact for <code>POST /predict</code>.</li>
+                <li><strong>Observe:</strong> SQLite stores prediction events and monitoring artifacts track drift and quality.</li>
+                <li><strong>Review:</strong> a policy combines performance degradation and PSI drift into a retraining recommendation.</li>
+              </ol>
+              <div id="retrainingPanel" class="retraining-panel"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="content-grid" id="quality">
+          <article class="console-card wide-card">
+            <div class="card-title-row"><div><span class="section-kicker">Model quality</span><h2>Performance across windows</h2></div><span class="metric-tag">AUC · F1 · Accuracy</span></div>
+            <div id="performanceChart" class="chart"></div>
+          </article>
+
+          <article class="console-card" id="drift">
+            <div class="card-title-row"><div><span class="section-kicker">Data drift</span><h2>Feature drift ranking</h2></div><span class="metric-tag">PSI-style score</span></div>
+            <div id="driftChart" class="chart compact-chart"></div>
+          </article>
+        </section>
+
+        <section class="content-grid" id="predictions">
+          <article class="console-card wide-card">
+            <div class="card-title-row"><div><span class="section-kicker">Prediction monitoring</span><h2>Volume, risk rate, and confidence</h2></div><span class="metric-tag">Daily logs</span></div>
+            <div id="predictionChart" class="chart"></div>
+          </article>
+
+          <article class="console-card" id="alerts">
+            <div class="card-title-row"><div><span class="section-kicker">Alert center</span><h2>Production risk indicators</h2></div><span class="metric-tag">Health</span></div>
+            <div id="alertList" class="alert-list"></div>
+          </article>
+        </section>
+
+
+        <section class="console-card observability-card" id="observability">
+          <div class="card-title-row">
+            <div>
+              <span class="section-kicker">Observability stack</span>
+              <h2>Evidently drift checks and Prometheus inference telemetry</h2>
+              <p>The monitoring layer combines offline feature-drift analysis with live inference metrics. Evidently compares reference and current feature distributions; Prometheus exposes counters, gauges, and latency histograms from the serving API.</p>
+            </div>
+            <span class="metric-tag">Evidently · Prometheus · Grafana</span>
+          </div>
+          <div class="observability-grid">
+            <article class="obs-panel">
+              <div class="obs-heading">
+                <div><span class="tiny-label">Evidently</span><h3>Reference vs current drift</h3></div>
+                <span id="evidentlyStatus" class="status-chip">Loading</span>
+              </div>
+              <div id="evidentlyKpis" class="obs-kpis"></div>
+              <div id="evidentlyFeatureList" class="feature-list"></div>
+            </article>
+            <article class="obs-panel">
+              <div class="obs-heading">
+                <div><span class="tiny-label">Prometheus</span><h3>Live inference telemetry</h3></div>
+                <span class="status-chip stable">Instrumented</span>
+              </div>
+              <div id="prometheusMetrics" class="metric-list"></div>
+              <p class="obs-note">The local Docker Compose stack can scrape these metrics into Prometheus and provision a Grafana dashboard automatically.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="console-card" id="model-card-section">
+          <div class="card-title-row"><div><span class="section-kicker">Model governance</span><h2>Structured model card</h2></div><span class="metric-tag">Deployment summary</span></div>
+          <div id="modelCard" class="model-card-grid"></div>
+        </section>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
