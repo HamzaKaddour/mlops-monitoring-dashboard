@@ -5,7 +5,7 @@ __pycache__/
 *.pyo
 *.egg-info/
 mlruns/
+mlflow.db
 data/predictions.db
 artifacts/model.joblib
 .DS_Store
-mlflow.db\n
