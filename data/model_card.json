@@ -1,27 +1,34 @@
 {
   "model_name": "Customer Churn Risk Classifier",
-  "version": "v1.3.0",
-  "owner": "ML Platform Team",
-  "last_updated": "2026-05-02",
-  "intended_use": "Prioritize customer retention outreach by estimating the probability that an active customer may churn within 30 days.",
-  "model_type": "Gradient Boosted Trees",
-  "training_data": "Historical customer account, billing, support, and contract records with labels derived from 30-day churn outcomes.",
-  "input_features": ["tenure_months", "monthly_charges", "contract_type", "support_tickets_30d", "payment_method", "internet_service"],
+  "version": "v1.0.0",
+  "owner": "Portfolio demonstration",
+  "last_updated": "2026-09-21",
+  "intended_use": "Demonstrate an end-to-end MLOps lifecycle using a churn-risk classifier, including experiment tracking, serving, monitoring, and retraining signals.",
+  "model_type": "Logistic Regression",
+  "training_data": "Deterministic synthetic churn dataset with 6,000 rows; 3,600 train, 1,200 validation, and 1,200 held-out test rows.",
+  "input_features": [
+    "tenure_months",
+    "monthly_charges",
+    "support_tickets_30d",
+    "contract_type",
+    "payment_method",
+    "internet_service"
+  ],
   "limitations": [
-    "Predictions should support retention prioritization, not automated denial of service.",
-    "Performance may degrade when pricing, support operations, or customer acquisition channels change.",
-    "Segments with low historical volume require additional review before operational decisions."
+    "The dataset and monitoring windows are synthetic and are not evidence of real-world production performance.",
+    "The repository demonstrates MLOps system behavior rather than a domain-validated churn model.",
+    "Prometheus counters reset when the local API process restarts unless an external Prometheus server persists them."
   ],
   "monitoring_requirements": [
-    "Track AUC, F1, precision, recall, and log loss by production window.",
-    "Monitor feature drift for billing, contract, and support-ticket features.",
-    "Review prediction distribution shifts weekly.",
-    "Trigger retraining review if AUC drops by more than 0.05 or if overall drift score exceeds 0.25."
+    "Track ROC-AUC, F1, precision, recall, and log loss across validation and monitoring windows.",
+    "Run Evidently feature-drift checks against the reference distribution.",
+    "Scrape inference counters, probability gauges, and latency histograms from Prometheus metrics.",
+    "Review retraining when AUC falls by at least 0.05 or PSI drift crosses configured thresholds."
   ],
   "deployment": {
-    "environment": "batch scoring",
-    "cadence": "daily",
-    "latency_target_ms": 75,
-    "current_p95_latency_ms": 48
+    "environment": "local FastAPI demo",
+    "cadence": "on demand",
+    "latency_target_ms": null,
+    "current_p95_latency_ms": null
   }
 }
