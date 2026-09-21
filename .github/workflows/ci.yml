@@ -31,5 +31,8 @@ jobs:
       - name: Train candidate models with local MLflow tracking
         run: python scripts/train_model.py
 
+      - name: Generate Evidently drift report
+        run: python scripts/generate_evidently_report.py
+
       - name: Run unit tests
         run: pytest -q
