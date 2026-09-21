@@ -98,6 +98,11 @@ def metrics() -> dict[str, Any]:
     return load_json("model_metrics.json")
 
 
+@app.get("/evidently-summary")
+def evidently_summary() -> dict[str, Any]:
+    return load_json("evidently_drift_summary.json")
+
+
 @app.get("/drift")
 def drift() -> dict[str, Any]:
     return load_json("drift_report.json")
