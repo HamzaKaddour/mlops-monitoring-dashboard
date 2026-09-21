@@ -51,3 +51,16 @@ def test_retraining_status_endpoint():
     payload = response.json()
     assert payload["status"] in {"healthy", "watch", "retrain"}
     assert "retraining_recommended" in payload
+
+
+def test_training_summary_endpoint():
+    response = client.get("/training-summary")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["selected_candidate"] in {
+        "logistic_regression",
+        "random_forest",
+        "hist_gradient_boosting",
+    }
+    assert "test_metrics" in payload
+    assert payload["mlflow"]["tracking_uri"] == "sqlite:///mlflow.db"
