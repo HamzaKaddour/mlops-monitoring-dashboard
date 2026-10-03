@@ -1,5 +1,7 @@
 # MLOps Monitoring Dashboard
 
+[**Portfolio case study → https://hamzakaddour.github.io/case-studies/mlops.html**](https://hamzakaddour.github.io/case-studies/mlops.html)
+
 [**Live Dashboard → hamzakaddour.github.io/mlops-monitoring-dashboard**](https://hamzakaddour.github.io/mlops-monitoring-dashboard/)
 
 > Local-first MLOps portfolio project covering experiment tracking, model selection, API serving, prediction logging, drift detection, observability, and retraining signals.
