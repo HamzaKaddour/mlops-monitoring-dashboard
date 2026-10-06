@@ -1,0 +1,45 @@
+name: Publish repository release
+
+on:
+  push:
+    paths:
+      - ".github/workflows/release.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish v0.2.0 if missing
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: "v0.2.0"
+          TITLE: "MLOps Monitoring Dashboard v0.2.0"
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG already exists."
+            exit 0
+          fi
+
+          cat > /tmp/release-notes.md <<'EOF'
+Portfolio release aligned with the repository's v0.2.0 project version.
+
+Highlights:
+- MLflow experiment tracking and model selection
+- FastAPI inference and prediction logging
+- Evidently + PSI drift monitoring
+- Prometheus telemetry and Grafana-compatible observability
+- retraining recommendations and structured model-card metadata
+- automated tests and GitHub Actions CI
+- reproducible Codespaces environment
+EOF
+
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "$TITLE" \
+            --notes-file /tmp/release-notes.md \
+            --latest
