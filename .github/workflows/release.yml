@@ -25,17 +25,17 @@ jobs:
           fi
 
           cat > /tmp/release-notes.md <<'EOF'
-Portfolio release aligned with the repository's v0.2.0 project version.
-
-Highlights:
-- MLflow experiment tracking and model selection
-- FastAPI inference and prediction logging
-- Evidently + PSI drift monitoring
-- Prometheus telemetry and Grafana-compatible observability
-- retraining recommendations and structured model-card metadata
-- automated tests and GitHub Actions CI
-- reproducible Codespaces environment
-EOF
+          Portfolio release aligned with the repository's v0.2.0 project version.
+          
+          Highlights:
+          - MLflow experiment tracking and model selection
+          - FastAPI inference and prediction logging
+          - Evidently + PSI drift monitoring
+          - Prometheus telemetry and Grafana-compatible observability
+          - retraining recommendations and structured model-card metadata
+          - automated tests and GitHub Actions CI
+          - reproducible Codespaces environment
+          EOF
 
           gh release create "$TAG" \
             --repo "$GITHUB_REPOSITORY" \
