@@ -1,5 +1,10 @@
 # MLOps Monitoring Dashboard
 
+[![CI](https://github.com/HamzaKaddour/mlops-monitoring-dashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/HamzaKaddour/mlops-monitoring-dashboard/actions/workflows/ci.yml)
+[![Pages](https://github.com/HamzaKaddour/mlops-monitoring-dashboard/actions/workflows/pages.yml/badge.svg)](https://github.com/HamzaKaddour/mlops-monitoring-dashboard/actions/workflows/pages.yml)
+[![Release](https://img.shields.io/github/v/release/HamzaKaddour/mlops-monitoring-dashboard?label=release)](https://github.com/HamzaKaddour/mlops-monitoring-dashboard/releases/latest)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/HamzaKaddour/mlops-monitoring-dashboard?quickstart=1)
+
 [**Portfolio case study → https://hamzakaddour.github.io/case-studies/mlops.html**](https://hamzakaddour.github.io/case-studies/mlops.html)
 
 [**Live Dashboard → hamzakaddour.github.io/mlops-monitoring-dashboard**](https://hamzakaddour.github.io/mlops-monitoring-dashboard/)
