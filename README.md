@@ -5,6 +5,11 @@
 [![Release](https://img.shields.io/github/v/release/HamzaKaddour/mlops-monitoring-dashboard?label=release)](https://github.com/HamzaKaddour/mlops-monitoring-dashboard/releases/latest)
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/HamzaKaddour/mlops-monitoring-dashboard?quickstart=1)
 
+
+### One-click development
+
+The repository includes a `.devcontainer` configuration for GitHub Codespaces. Use the **Open in GitHub Codespaces** badge above to launch a Python 3.11 environment with the project dependencies installed. The container forwards the FastAPI, static-dashboard, and MLflow development ports.
+
 [**Portfolio case study → https://hamzakaddour.github.io/case-studies/mlops.html**](https://hamzakaddour.github.io/case-studies/mlops.html)
 
 [**Live Dashboard → hamzakaddour.github.io/mlops-monitoring-dashboard**](https://hamzakaddour.github.io/mlops-monitoring-dashboard/)
