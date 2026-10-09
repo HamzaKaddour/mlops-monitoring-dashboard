@@ -34,7 +34,7 @@ jobs:
           cp data/observability_summary.json static/data/observability_summary.json
           cp artifacts/training_summary.json static/artifacts/training_summary.json
 
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
 
       - uses: actions/upload-pages-artifact@v3
         with:
